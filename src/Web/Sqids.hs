@@ -1,0 +1,2 @@
+module Web.Sqids () where
+

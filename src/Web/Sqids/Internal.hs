@@ -2,13 +2,14 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE FlexibleContexts #-}
 module Web.Sqids.Internal
-  ( sqidsVersion
-  , SqidsOptions(..)
+  ( SqidsOptions(..)
+  , SqidsError(..)
   , Valid(..)
   , emptySqidsOptions
   , defaultSqidsOptions
   , SqidsStack
   , MonadSqids(..)
+  , sqidsOptions
   , SqidsT(..)
   , Sqids(..)
   , runSqidsT
@@ -36,12 +37,8 @@ import Control.Monad.Trans.Maybe (MaybeT)
 import Control.Monad.Trans.Select (SelectT)
 import Control.Monad.Writer (WriterT)
 import Data.Char (ord, toLower)
-import Data.List (foldl', unfoldr, elemIndex, intersect, nub)
+import Data.List (foldl', unfoldr, elemIndex, intersect, nub, null)
 import Web.Sqids.Utils.Internal (swapChars)
-
--- | Sqids spec. version
-sqidsVersion :: String
-sqidsVersion = "?"
 
 data SqidsOptions = SqidsOptions
   { alphabet  :: String
@@ -56,9 +53,10 @@ newtype Valid a = Valid { getValid :: a }
   deriving (Show, Read, Eq, Ord)
 
 data SqidsError
-  = SqidsAlphabetTooShortError
+  = SqidsAlphabetTooShort
   | SqidsAlphabetRepeatedCharacters
   | SqidsInvalidMinLength
+  | SqidsNegativeNumberInInput
   deriving (Show, Read, Eq, Ord)
 
 emptySqidsOptions :: SqidsOptions
@@ -92,7 +90,7 @@ sqidsOptions SqidsOptions{..} = do
 
   -- Check the length of the alphabet
   when (length alphabet < 5) $
-    throwError SqidsAlphabetTooShortError
+    throwError SqidsAlphabetTooShort
 
   -- Check that the alphabet has only unique characters
   when (nub alphabet /= alphabet) $
@@ -121,7 +119,18 @@ instance MonadTrans SqidsT where
   lift = SqidsT . lift . lift
 
 instance (Monad m) => MonadSqids (SqidsT m) where
-  encode = undefined
+  -- | Encode a list of unsigned integers into an ID
+  encode numbers
+    | null numbers =
+        -- If no numbers passed, return an empty string
+        pure ""
+    | any (< 0) numbers =
+        -- Don't allow negative integers
+        throwError SqidsNegativeNumberInInput
+    | otherwise =
+        pure (encodeNumbers numbers False)
+
+  -- | TODO
   decode sqid = undefined
   --
   getAlphabet = undefined
@@ -237,11 +246,19 @@ curatedBlacklist _alphabet ws = (fmap toLower) <$> filter isValid ws
   where
     isValid w = length w >= 3 && length w == length (w `intersect` _alphabet)
 
+-- | Internal function that encodes a list of unsigned integers into an ID
 encodeNumbers :: [Int] -> Bool -> String
-encodeNumbers = undefined
+encodeNumbers numbers partitioned =
+  undefined
 
-decodeWithAlphabet :: String -> String -> m [Int]
-decodeWithAlphabet = undefined
+decodeWithAlphabet :: String -> String -> [Int]
+decodeWithAlphabet _alphabet sqid
+  -- If an empty string is given, or if a character in the string is not in the
+  -- alphabet, return an empty list
+  | null sqid || not (all (`elem` _alphabet) sqid) =
+      []
+  | otherwise =
+      undefined
 
 shuffle :: String -> String
 shuffle _alphabet = foldl' mu _alphabet ixs

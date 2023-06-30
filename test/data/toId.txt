@@ -1,0 +1,9 @@
+20|abcdefg|cg
+1|abcdefg|b
+0|a|a
+0|ab|a
+1|ab|b
+100|abc|bacab
+123|abc|bbbca
+456|abc|bcbcca
+123|0123456789|123

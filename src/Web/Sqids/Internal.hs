@@ -24,8 +24,9 @@ module Web.Sqids.Internal
   , isBlockedId
   ) where
 
+import Control.Monad (when)
 import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Except (MonadError)
+import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader (ReaderT)
 import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put)
@@ -35,7 +36,7 @@ import Control.Monad.Trans.Maybe (MaybeT)
 import Control.Monad.Trans.Select (SelectT)
 import Control.Monad.Writer (WriterT)
 import Data.Char (ord, toLower)
-import Data.List (foldl', unfoldr, elemIndex, intersect)
+import Data.List (foldl', unfoldr, elemIndex, intersect, nub)
 import Web.Sqids.Utils.Internal (swapChars)
 
 -- | Sqids spec. version
@@ -88,7 +89,24 @@ sqidsOptions
   => SqidsOptions
   -> m (Valid SqidsOptions)
 sqidsOptions SqidsOptions{..} = do
-  undefined
+
+  -- Check the length of the alphabet
+  when (length alphabet < 5) $
+    throwError SqidsAlphabetTooShortError
+
+  -- Check that the alphabet has only unique characters
+  when (nub alphabet /= alphabet) $
+    throwError SqidsAlphabetRepeatedCharacters
+
+  -- Validate min. length
+  when (minLength < 0 || minLength > length alphabet) $
+    throwError SqidsInvalidMinLength
+
+  pure $ Valid $ SqidsOptions
+    { alphabet  = shuffle alphabet
+    , minLength = minLength
+    , blacklist = curatedBlacklist alphabet blacklist
+    }
 
 newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
   deriving

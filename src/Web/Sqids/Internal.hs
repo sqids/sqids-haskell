@@ -19,6 +19,9 @@ module Web.Sqids.Internal
   , curatedBlacklist
   , encodeNumbers
   , decodeWithAlphabet
+  , decodeId
+--  , decodeId2
+--  , bbbb
   , shuffle
   , toId
   , toNumber
@@ -37,7 +40,9 @@ import Control.Monad.Trans.Maybe (MaybeT)
 import Control.Monad.Trans.Select (SelectT)
 import Control.Monad.Writer (WriterT)
 import Data.Char (ord, toLower)
-import Data.List (foldl', unfoldr, elemIndex, intersect, nub, null)
+import Debug.Trace (traceShow)
+import Data.List (foldl', unfoldr, elemIndex, intersect, nub, null, intercalate)
+import Data.List.Split (splitOn)
 import Web.Sqids.Utils.Internal (swapChars, unsafeElemIndex)
 
 data SqidsOptions = SqidsOptions
@@ -251,58 +256,109 @@ encodeNumbers :: [Int] -> Bool -> String
 encodeNumbers numbers partitioned =
   undefined
 
-decodeWithAlphabet2 :: String -> String -> [Int]
-decodeWithAlphabet2 _alphabet sqid
-    | null sqid || not (all (`elem` _alphabet) sqid) = []
-    | otherwise = undefined
+decodeId :: String -> String -> [Int]
+decodeId x y = unfoldr mu (x, y)
   where
-    offset = unsafeElemIndex (head sqid) _alphabet
+    mu ("", _) = Nothing
+    mu (sqid, alphabet) = 
+--        traceShow chunks $ 
+        case chunks of
+          [] -> Nothing
+          (c:cs) ->
+             -- decodeId (intercalate [separator] as) (shuffle alphabet) ret'
+                Just 
+                  ( toNumber c alphabetWithoutSeparator
+                  , (intercalate [separator] cs, shuffle alphabet)
+                  )
+      where
+        chunks = splitOn [separator] sqid
 
-    _ : partition : alphabet'' = drop offset _alphabet <> take offset _alphabet
+        separator = last alphabet
 
-    sqid' = drop 1 sqid
+        alphabetWithoutSeparator = init alphabet
 
-    (sqid'', alphabet''') =
-      case elemIndex partition sqid' of
-        Just n | n > 0 && n < length sqid' - 1 ->
-          (drop (n + 1) sqid', shuffle alphabet'')
-        _ ->
-          (sqid', alphabet'')
+--decodeId "" _ ret = ret
+--decodeId sqid alphabet ret =
+--  case chunks of
+----    [] -> undefined -- ret -- decodeId "" alphabet ret
+--    (chunk : as) ->
+--        let ret' = ret <> [toNumber chunk alphabetWithoutSeparator]
+--         in decodeId (intercalate [separator] as) (shuffle alphabet) ret'
+--  where
+--    chunks = splitOn [separator] sqid
+--
+--    separator = last alphabet
+--
+--    alphabetWithoutSeparator = init alphabet
+--
+--decodeId2 :: String -> String -> [Int] -> [Int]
+--decodeId2 "" _ ret = ret
+--decodeId2 sqid alphabet ret =
+--  case chunks of
+--    [] -> undefined -- ret -- decodeId "" alphabet ret
+--    (chunk : as) ->
+--        let ret' = ret <> [toNumber chunk alphabetWithoutSeparator]
+--         in decodeId2 (intercalate [separator] as) (shuffle alphabet) ret'
+--  where
+--    chunks = splitOn [separator] sqid
+--
+--    separator = head alphabet
+--
+--    alphabetWithoutSeparator = tail alphabet
+--
+--bbbb x y z = (decodeId x y z, decodeId2 (reverse x) (reverse y) z)
 
---decodeWithAlphabet :: String -> String -> [Int]
+decodeWithAlphabet :: String -> String -> [Int]
 decodeWithAlphabet _alphabet sqid
-  -- If an empty string is given, or if any character in the string is missing
-  -- from the alphabet, then return an empty list
-  | null sqid || not (all (`elem` _alphabet) sqid) = []
-  | otherwise =
-      case partitionIndex of
-        Nothing -> undefined
-        Just xx -> undefined
+    | null sqid || not (all (`elem` _alphabet) sqid) = []
+    | otherwise = decodeId sqid'' alphabet''
   where
-    -- First character is always the `prefix`
-    prefix = head sqid
-
-    -- Semi-random position that was generated during encoding
+    prefix : sqid' = sqid
     offset = unsafeElemIndex prefix _alphabet
 
-    -- Re-arrange alphabet back into its original form
-    alphabet' = drop offset _alphabet <> take offset _alphabet
+    _ : partition : alphabet' = drop offset _alphabet <> take offset _alphabet
 
-    -- `partition` character is in second position
-    partition = alphabet' !! 1
+    (sqid'', alphabet'') =
+      case elemIndex partition sqid' of
+        Just n | n > 0 && n < length sqid' - 1 ->
+          (drop (n + 1) sqid', shuffle alphabet')
+        _ ->
+          (sqid', alphabet')
 
-    -- new alphabet without reserved `prefix` and `partition` character
-    alphabet'' = drop 2 alphabet'
-
-    -- Now it is safe to remove the prefix character from the ID, as it isn't
-    -- needed anymore
-    sqid' = drop 1 sqid
-
-    partitionIndex = elemIndex partition sqid'
-
-    -- If this ID contains the `partition` character (between first position
-    -- and non-last position), throw away everything to the left of it,
-    -- include the `partition` character
+--decodeWithAlphabet :: String -> String -> [Int]
+--decodeWithAlphabet _alphabet sqid
+--  -- If an empty string is given, or if any character in the string is missing
+--  -- from the alphabet, then return an empty list
+--  | null sqid || not (all (`elem` _alphabet) sqid) = []
+--  | otherwise =
+--      case partitionIndex of
+--        Nothing -> undefined
+--        Just xx -> undefined
+--  where
+--    -- First character is always the `prefix`
+--    prefix = head sqid
+--
+--    -- Semi-random position that was generated during encoding
+--    offset = unsafeElemIndex prefix _alphabet
+--
+--    -- Re-arrange alphabet back into its original form
+--    alphabet' = drop offset _alphabet <> take offset _alphabet
+--
+--    -- `partition` character is in second position
+--    partition = alphabet' !! 1
+--
+--    -- new alphabet without reserved `prefix` and `partition` character
+--    alphabet'' = drop 2 alphabet'
+--
+--    -- Now it is safe to remove the prefix character from the ID, as it isn't
+--    -- needed anymore
+--    sqid' = drop 1 sqid
+--
+--    partitionIndex = elemIndex partition sqid'
+--
+--    -- If this ID contains the `partition` character (between first position
+--    -- and non-last position), throw away everything to the left of it,
+--    -- include the `partition` character
 
 
 

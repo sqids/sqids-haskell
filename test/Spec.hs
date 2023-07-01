@@ -2,7 +2,7 @@
 import Test.Hspec
 
 import Data.List.Split (splitOn)
-import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlacklist, sqidsOptions, sqids, encode, SqidsOptions(..), SqidsError(..), Valid(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlacklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, SqidsOptions(..), SqidsError(..), Valid(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 withTestData :: FilePath -> ([String] -> SpecWith ()) -> SpecWith ()
@@ -97,6 +97,24 @@ testEncode = do
     it "list with negative values" $ 
       sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
 
+testDecodeId :: SpecWith ()
+testDecodeId = do
+  withTestData "decodeId" $ \case
+    sqid : alphabet : result : _ ->
+      let msg = sqid <> " " <> alphabet
+       in it msg (decodeId sqid alphabet `shouldBe` read result)
+    _ ->
+      error "testDecodeId: bad input"
+
+testDecodeWithAlphabet :: SpecWith ()
+testDecodeWithAlphabet = do
+  withTestData "decodeWithAlphabet" $ \case
+    alphabet : sqid : result : _ ->
+      let msg = alphabet <> " " <> sqid
+       in it msg (decodeWithAlphabet alphabet sqid `shouldBe` read result)
+    _ ->
+      error "testDecodeWithAlphabet: bad input"
+
 main :: IO ()
 main =
   hspec $ do
@@ -107,3 +125,5 @@ main =
     testShuffle
     testCuratedBlacklist
     testEncode
+    testDecodeId
+    testDecodeWithAlphabet

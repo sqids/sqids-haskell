@@ -257,24 +257,18 @@ encodeNumbers numbers partitioned =
   undefined
 
 decodeId :: String -> String -> [Int]
-decodeId x y = unfoldr mu (x, y)
+decodeId = curry (unfoldr mu)
   where
     mu ("", _) = Nothing
-    mu (sqid, alphabet) = 
---        traceShow chunks $ 
-        case chunks of
+    mu (sqid, alphabet) =
+        case splitOn [separator] sqid of
           [] -> Nothing
-          (c:cs) ->
-             -- decodeId (intercalate [separator] as) (shuffle alphabet) ret'
-                Just 
-                  ( toNumber c alphabetWithoutSeparator
-                  , (intercalate [separator] cs, shuffle alphabet)
-                  )
+          (c:cs) -> Just
+            ( toNumber c alphabetWithoutSeparator
+            , (intercalate [separator] cs, shuffle alphabet)
+            )
       where
-        chunks = splitOn [separator] sqid
-
         separator = last alphabet
-
         alphabetWithoutSeparator = init alphabet
 
 --decodeId "" _ ret = ret
@@ -359,8 +353,6 @@ decodeWithAlphabet _alphabet sqid
 --    -- If this ID contains the `partition` character (between first position
 --    -- and non-last position), throw away everything to the left of it,
 --    -- include the `partition` character
-
-
 
 shuffle :: String -> String
 shuffle _alphabet = foldl' mu _alphabet ixs

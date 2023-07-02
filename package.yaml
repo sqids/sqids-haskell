@@ -31,6 +31,8 @@ ghc-options:
 library:
   source-dirs: src
   dependencies:
+  - text >= 2.0.2 && < 2.1.0
+  - containers >= 0.6.7 && < 0.7.0
   - mtl >= 2.2.2 && < 2.3.0
   - transformers >= 0.5.6.2 && < 0.6.0.0
   - split >= 0.2.3.5 && < 0.3.0.0
@@ -45,5 +47,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - sqids-haskell
+    - text >= 2.0.2 && < 2.1.0
     - hspec >= 2.10.10 && < 2.11
     - split >= 0.2.3.5 && < 0.3.0.0

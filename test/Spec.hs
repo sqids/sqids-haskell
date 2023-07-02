@@ -91,15 +91,15 @@ testToId = do
     _ ->
       error "testToId: bad input"
 
-----testToNumber :: SpecWith ()
-----testToNumber = do
-----  withTestData "toNumber" $ \case
-----    sqid : alphabet : result : _ ->
-----      let msg = sqid <> " " <> alphabet
-----       in it msg (toNumber sqid alphabet `shouldBe` read result)
-----    _ ->
-----      error "testToNumber: bad input"
-----
+testToNumber :: SpecWith ()
+testToNumber = do
+  withTestData "toNumber" $ \case
+    sqid : alphabet : result : _ ->
+      let msg = sqid <> " " <> alphabet
+       in it msg (toNumber sqid alphabet `shouldBe` textRead result)
+    _ ->
+      error "testToNumber: bad input"
+
 ----testEncode :: SpecWith ()
 ----testEncode = do
 ----  describe "encode" $ do
@@ -132,7 +132,7 @@ main =
     testSwapChars
 --    testSqidsOptions
     testToId
---    testToNumber
+    testToNumber
     testShuffle
     testCuratedBlacklist
 --    testEncode

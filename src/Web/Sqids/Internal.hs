@@ -22,7 +22,7 @@ module Web.Sqids.Internal
 --  , decodeId
   , shuffle
   , toId
---  , toNumber
+  , toNumber
 --  , isBlockedId
   ) where
 
@@ -373,14 +373,14 @@ toId num _alphabet = Text.reverse (Text.unfoldr (fmap mu) (Just num))
           next = if m == 0 then Nothing else Just m
        in (Text.index _alphabet r, next)
 
--- toNumber :: String -> String -> Int
--- toNumber sqid _alphabet = foldl' mu 0 sqid
---   where
---     len = length _alphabet
---     mu v c =
---       case elemIndex c _alphabet of
---         Just n -> len * v + n
---         _ -> error "toNumber: bad input"
--- 
+toNumber :: Text -> Text -> Int
+toNumber sqid _alphabet = Text.foldl' mu 0 sqid
+  where
+    len = Text.length _alphabet
+    mu v c =
+      case Text.findIndex (== c) _alphabet of
+        Just n -> len * v + n
+        _ -> error "toNumber: bad input"
+
 -- isBlockedId :: (MonadSqids m) => String -> m Bool
 -- isBlockedId = undefined

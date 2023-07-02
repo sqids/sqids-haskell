@@ -117,16 +117,16 @@ testIsBlockedId = do
 ----      sqids (encode []) `shouldBe` Right ""
 ----    it "list with negative values" $ 
 ----      sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
-----
-----testDecodeId :: SpecWith ()
-----testDecodeId = do
-----  withTestData "decodeId" $ \case
-----    sqid : alphabet : result : _ ->
-----      let msg = sqid <> " " <> alphabet
-----       in it msg (decodeId sqid alphabet `shouldBe` read result)
-----    _ ->
-----      error "testDecodeId: bad input"
-----
+
+testDecodeId :: SpecWith ()
+testDecodeId = do
+  withTestData "decodeId" $ \case
+    sqid : alphabet : result : _ ->
+      let msg = sqid <> " " <> alphabet
+       in it msg (decodeId sqid alphabet `shouldBe` textRead result)
+    _ ->
+      error "testDecodeId: bad input"
+
 ----testDecodeWithAlphabet :: SpecWith ()
 ----testDecodeWithAlphabet = do
 ----  withTestData "decodeWithAlphabet" $ \case
@@ -147,5 +147,5 @@ main =
     testCuratedBlacklist
     testIsBlockedId
 --    testEncode
---    testDecodeId
+    testDecodeId
 --    testDecodeWithAlphabet

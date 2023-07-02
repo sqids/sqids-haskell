@@ -19,7 +19,7 @@ module Web.Sqids.Internal
   , curatedBlacklist
 --  , encodeNumbers
 --  , decodeWithAlphabet
---  , decodeId
+  , decodeId
   , shuffle
   , toId
   , toNumber
@@ -259,21 +259,37 @@ encodeNumbers :: [Int] -> Bool -> Text
 encodeNumbers numbers partitioned =
   undefined
 
--- decodeId :: String -> String -> [Int]
--- decodeId = curry (unfoldr mu)
---   where
---     mu ("", _) = Nothing
---     mu (sqid, alphabet) =
---         case splitOn [separator] sqid of
---           [] -> Nothing
---           (c:cs) -> Just
---             ( toNumber c alphabetWithoutSeparator
---             , (intercalate [separator] cs, shuffle alphabet)
---             )
---       where
---         separator = last alphabet
---         alphabetWithoutSeparator = init alphabet
--- 
+decodeId :: Text -> Text -> [Int]
+decodeId = curry (unfoldr mu)
+  where
+    mu (sqid, alphabet)
+      | Text.null sqid = Nothing
+      | otherwise =
+          case Text.unsnoc alphabet of
+            Just (alphabetBarSeparator, separatorChar) ->
+              let separator = Text.singleton separatorChar in
+                case Text.splitOn separator sqid of
+                  [] -> Nothing
+                  (chunk : chunks) -> Just
+                    ( toNumber chunk alphabetBarSeparator
+                    , (Text.intercalate separator chunks, shuffle alphabet)
+                    )
+            _ ->
+              error "decodeId: bad input"
+
+--    mu (sqid, alphabet)
+--      | Text.null sqid = Nothing
+--      | otherwise =
+--          undefined
+--      where
+--        (alphabetWithoutSeparator, separator) = Text.unsnoc alphabet
+--        case splitOn [separator] sqid of
+--          [] -> Nothing
+--          (c:cs) -> Just
+--            ( toNumber c alphabetWithoutSeparator
+--            , (intercalate [separator] cs, shuffle alphabet)
+--            )
+
 -- --decodeId "" _ ret = ret
 -- --decodeId sqid alphabet ret =
 -- --  case chunks of
@@ -304,7 +320,7 @@ encodeNumbers numbers partitioned =
 -- --    alphabetWithoutSeparator = tail alphabet
 -- --
 -- --bbbb x y z = (decodeId x y z, decodeId2 (reverse x) (reverse y) z)
--- 
+--
 -- decodeWithAlphabet :: String -> String -> [Int]
 -- decodeWithAlphabet _alphabet sqid
 --     | null sqid || not (all (`elem` _alphabet) sqid) = []
@@ -312,16 +328,16 @@ encodeNumbers numbers partitioned =
 --   where
 --     prefix : sqid' = sqid
 --     offset = unsafeElemIndex prefix _alphabet
--- 
+--
 --     _ : partition : alphabet' = drop offset _alphabet <> take offset _alphabet
--- 
+--
 --     (sqid'', alphabet'') =
 --       case elemIndex partition sqid' of
 --         Just n | n > 0 && n < length sqid' - 1 ->
 --           (drop (n + 1) sqid', shuffle alphabet')
 --         _ ->
 --           (sqid', alphabet')
--- 
+--
 -- --decodeWithAlphabet :: String -> String -> [Int]
 -- --decodeWithAlphabet _alphabet sqid
 -- --  -- If an empty string is given, or if any character in the string is missing

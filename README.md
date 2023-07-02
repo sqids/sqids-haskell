@@ -41,7 +41,7 @@ Prevent specific words from appearing anywhere in the auto-generated IDs:
 ## Notes
 
 - **Do not encode sensitive data.** These IDs can be easily decoded.
-- **Default blacklist is auto-enabled.** It's configured for the most common profanity words. Create your own custom list by using the `blacklist` parameter, or pass an empty array to allow all words.
+- **Default blocklist is auto-enabled.** It's configured for the most common profanity words. Create your own custom list by using the `blocklist` parameter, or pass an empty array to allow all words.
 - Read more at <https://sqids.org/haskell>
 
 ## License

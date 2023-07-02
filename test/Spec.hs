@@ -2,7 +2,7 @@
 import Test.Hspec
 
 import Data.List.Split (splitOn)
-import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlacklist, sqidsOptions, sqids, encode, SqidsOptions(..), SqidsError(..), Valid(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, encode, SqidsOptions(..), SqidsError(..), Valid(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 withTestData :: FilePath -> ([String] -> SpecWith ()) -> SpecWith ()
@@ -34,34 +34,34 @@ testSqidsOptions =
     optionsWithShortAlphabet = SqidsOptions 
       { alphabet = "abc"
       , minLength = 5
-      , blacklist = []
+      , blocklist = []
       }
     optionsWithInvalidAlphabet = SqidsOptions 
       { alphabet = "abcdefghijklmnopqrstuvwxyza"
       , minLength = 5
-      , blacklist = []
+      , blocklist = []
       }
     optionsWithInvalidMinLength = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
       , minLength = -1
-      , blacklist = []
+      , blocklist = []
       }
     optionsValid = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
       , minLength = 5 
-      , blacklist = []
+      , blocklist = []
       }
 
-testCuratedBlacklist :: SpecWith ()
-testCuratedBlacklist =
-  withTestData "curatedBlacklist" $ \case
+testCuratedBlocklist :: SpecWith ()
+testCuratedBlocklist =
+  withTestData "curatedBlocklist" $ \case
     alphabet : wlist : result : _ ->
       let msg = alphabet <> " " <> wlist
           ws = splitOn "," wlist
           results = splitOn "," result
-       in it msg (curatedBlacklist alphabet ws `shouldBe` results)
+       in it msg (curatedBlocklist alphabet ws `shouldBe` results)
     _ ->
-      error "testCuratedBlacklist: bad input"
+      error "testCuratedBlocklist: bad input"
 
 testShuffle :: SpecWith ()
 testShuffle = do
@@ -105,5 +105,5 @@ main =
     testToId
     testToNumber
     testShuffle
-    testCuratedBlacklist
+    testCuratedBlocklist
     testEncode

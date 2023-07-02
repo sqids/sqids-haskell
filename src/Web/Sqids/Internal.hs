@@ -17,7 +17,7 @@ module Web.Sqids.Internal
   , runSqids
   , sqids
   , curatedBlacklist
---  , encodeNumbers
+  , encodeNumbers
   , decodeWithAlphabet
   , decodeId
   , shuffle
@@ -137,7 +137,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
         -- Don't allow negative integers
         throwError SqidsNegativeNumberInInput
     | otherwise =
-        pure (encodeNumbers numbers False)
+        pure (encodeNumbers undefined numbers False)
 
   decode sqid = undefined
   --
@@ -256,11 +256,35 @@ curatedBlacklist _alphabet ws = (Text.map toLower) <$> filter isValid ws where
   isValid w = Text.length w >= 3 && Text.all (`Text.elem` _alphabet) w
 
 -- | Internal function that encodes a list of unsigned integers into an ID
-encodeNumbers :: [Int] -> Bool -> Text
-encodeNumbers numbers partitioned =
-  undefined
+encodeNumbers :: Text -> [Int] -> Bool -> Text
+encodeNumbers _alphabet numbers partitioned =
+    fst $ foldl' bu (Text.singleton prefix, alphabet') (zip numbers [0..])
+    --foo alphabet' numbers (Text.singleton prefix)
   where
-    offset = undefined
+    len = Text.length _alphabet
+    temp = Text.drop offset _alphabet <> Text.take offset _alphabet
+    --
+    alphabet' = Text.drop 2 temp
+    prefix = Text.index temp 0
+    partition = Text.index temp 1
+    --
+    offset = 
+      foldl' mu (length numbers) (zip numbers [0..]) `mod` len
+    mu a (v, i) =
+      let currentChar = Text.index _alphabet (v `mod` len)
+       in ord currentChar + i + a
+    --
+    bu (r, chars) (n, i) = 
+      let
+        barrier
+          | i == length numbers - 1 = Text.empty
+          | otherwise =
+              Text.singleton $ 
+                if partitioned && i == 0 then partition else separator
+        bork = Text.init chars
+        separator = Text.last chars
+      in
+        (r <> toId n bork <> barrier, shuffle chars)
 
 decodeId :: Text -> Text -> [Int]
 decodeId = curry (unfoldr mu)

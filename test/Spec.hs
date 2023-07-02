@@ -33,21 +33,21 @@ testSwapChars = do
 testSqidsOptions :: SpecWith ()
 testSqidsOptions =
   describe "sqidsOptions" $ do
-    it "too short alphabet" $ 
+    it "too short alphabet" $
       sqids (sqidsOptions optionsWithShortAlphabet) `shouldBe` Left SqidsAlphabetTooShort
-    it "invalid alphabet" $ 
+    it "invalid alphabet" $
       sqids (sqidsOptions optionsWithInvalidAlphabet) `shouldBe` Left SqidsAlphabetRepeatedCharacters
-    it "invalid min length" $ 
+    it "invalid min length" $
       sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
-    it "valid options" $ 
+    it "valid options" $
       sqids (sqidsOptions optionsValid) `shouldBe` Right (Valid optionsValid{ alphabet = shuffle (alphabet optionsValid) })
   where
-    optionsWithShortAlphabet = SqidsOptions 
+    optionsWithShortAlphabet = SqidsOptions
       { alphabet = "abc"
       , minLength = 5
       , blacklist = []
       }
-    optionsWithInvalidAlphabet = SqidsOptions 
+    optionsWithInvalidAlphabet = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyza"
       , minLength = 5
       , blacklist = []
@@ -59,7 +59,7 @@ testSqidsOptions =
       }
     optionsValid = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
-      , minLength = 5 
+      , minLength = 5
       , blacklist = []
       }
 
@@ -110,13 +110,23 @@ testIsBlockedId = do
     _ ->
       error "testIsBlockedId: bad input"
 
-----testEncode :: SpecWith ()
-----testEncode = do
-----  describe "encode" $ do
-----    it "emtpy list" $ 
-----      sqids (encode []) `shouldBe` Right ""
-----    it "list with negative values" $ 
-----      sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
+testEncode :: SpecWith ()
+testEncode = do
+  describe "encode" $ do
+    it "emtpy list" $
+      sqids (encode []) `shouldBe` Right ""
+    it "list with negative values" $
+      sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
+
+testEncodeNumbers :: SpecWith ()
+testEncodeNumbers = do
+  withTestData "encodeNumbers" $ \case
+    alphabet : numbers : partitioned : result : _ ->
+      let msg = alphabet <> " " <> numbers <> " " <> partitioned
+          nlist = textRead <$> (Text.splitOn "," numbers)
+       in it msg (encodeNumbers alphabet nlist (textRead partitioned) `shouldBe` result)
+    _ ->
+      error "testEncodeNumbers: bad input"
 
 testDecodeId :: SpecWith ()
 testDecodeId = do
@@ -146,6 +156,7 @@ main =
     testShuffle
     testCuratedBlacklist
     testIsBlockedId
---    testEncode
+    testEncode
+    testEncodeNumbers
     testDecodeId
     testDecodeWithAlphabet

@@ -30,38 +30,38 @@ testSwapChars = do
     _ ->
       error "testSwapChars: bad input"
 
-----testSqidsOptions :: SpecWith ()
-----testSqidsOptions =
-----  describe "sqidsOptions" $ do
-----    it "too short alphabet" $ 
-----      sqids (sqidsOptions optionsWithShortAlphabet) `shouldBe` Left SqidsAlphabetTooShort
-----    it "invalid alphabet" $ 
-----      sqids (sqidsOptions optionsWithInvalidAlphabet) `shouldBe` Left SqidsAlphabetRepeatedCharacters
-----    it "invalid min length" $ 
-----      sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
-----    it "valid options" $ 
-----      sqids (sqidsOptions optionsValid) `shouldBe` Right (Valid optionsValid{ alphabet = shuffle (alphabet optionsValid) })
-----  where
-----    optionsWithShortAlphabet = SqidsOptions 
-----      { alphabet = "abc"
-----      , minLength = 5
-----      , blacklist = []
-----      }
-----    optionsWithInvalidAlphabet = SqidsOptions 
-----      { alphabet = "abcdefghijklmnopqrstuvwxyza"
-----      , minLength = 5
-----      , blacklist = []
-----      }
-----    optionsWithInvalidMinLength = SqidsOptions
-----      { alphabet = "abcdefghijklmnopqrstuvwxyz"
-----      , minLength = -1
-----      , blacklist = []
-----      }
-----    optionsValid = SqidsOptions
-----      { alphabet = "abcdefghijklmnopqrstuvwxyz"
-----      , minLength = 5 
-----      , blacklist = []
-----      }
+testSqidsOptions :: SpecWith ()
+testSqidsOptions =
+  describe "sqidsOptions" $ do
+    it "too short alphabet" $ 
+      sqids (sqidsOptions optionsWithShortAlphabet) `shouldBe` Left SqidsAlphabetTooShort
+    it "invalid alphabet" $ 
+      sqids (sqidsOptions optionsWithInvalidAlphabet) `shouldBe` Left SqidsAlphabetRepeatedCharacters
+    it "invalid min length" $ 
+      sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
+    it "valid options" $ 
+      sqids (sqidsOptions optionsValid) `shouldBe` Right (Valid optionsValid{ alphabet = shuffle (alphabet optionsValid) })
+  where
+    optionsWithShortAlphabet = SqidsOptions 
+      { alphabet = "abc"
+      , minLength = 5
+      , blacklist = []
+      }
+    optionsWithInvalidAlphabet = SqidsOptions 
+      { alphabet = "abcdefghijklmnopqrstuvwxyza"
+      , minLength = 5
+      , blacklist = []
+      }
+    optionsWithInvalidMinLength = SqidsOptions
+      { alphabet = "abcdefghijklmnopqrstuvwxyz"
+      , minLength = -1
+      , blacklist = []
+      }
+    optionsValid = SqidsOptions
+      { alphabet = "abcdefghijklmnopqrstuvwxyz"
+      , minLength = 5 
+      , blacklist = []
+      }
 
 testCuratedBlacklist :: SpecWith ()
 testCuratedBlacklist =
@@ -100,6 +100,16 @@ testToNumber = do
     _ ->
       error "testToNumber: bad input"
 
+testIsBlockedId :: SpecWith ()
+testIsBlockedId = do
+  withTestData "isBlockedId" $ \case
+    blacklist : sqid : result : _ ->
+      let msg = blacklist <> " " <> sqid
+          wlist = Text.splitOn "," blacklist
+       in it msg (isBlockedId wlist sqid == textRead result)
+    _ ->
+      error "testIsBlockedId: bad input"
+
 ----testEncode :: SpecWith ()
 ----testEncode = do
 ----  describe "encode" $ do
@@ -130,11 +140,12 @@ main :: IO ()
 main =
   hspec $ do
     testSwapChars
---    testSqidsOptions
+    testSqidsOptions
     testToId
     testToNumber
     testShuffle
     testCuratedBlacklist
+    testIsBlockedId
 --    testEncode
 --    testDecodeId
 --    testDecodeWithAlphabet

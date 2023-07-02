@@ -3,19 +3,19 @@
 {-# LANGUAGE RecordWildCards #-}
 module Web.Sqids.Internal
   ( SqidsOptions(..)
---  , SqidsError(..)
---  , Valid(..)
---  , emptySqidsOptions
---  , defaultSqidsOptions
---  , SqidsStack
---  , MonadSqids(..)
---  , sqidsOptions
---  , SqidsT(..)
---  , Sqids(..)
---  , runSqidsT
---  , sqidsT
---  , runSqids
---  , sqids
+  , SqidsError(..)
+  , Valid(..)
+  , emptySqidsOptions
+  , defaultSqidsOptions
+  , SqidsStack
+  , MonadSqids(..)
+  , sqidsOptions
+  , SqidsT(..)
+  , Sqids(..)
+  , runSqidsT
+  , sqidsT
+  , runSqids
+  , sqids
   , curatedBlacklist
 --  , encodeNumbers
 --  , decodeWithAlphabet
@@ -23,7 +23,7 @@ module Web.Sqids.Internal
   , shuffle
   , toId
   , toNumber
---  , isBlockedId
+  , isBlockedId
   ) where
 
 import Control.Monad (when)
@@ -37,12 +37,12 @@ import Control.Monad.Trans.Cont (ContT)
 import Control.Monad.Trans.Maybe (MaybeT)
 import Control.Monad.Trans.Select (SelectT)
 import Control.Monad.Writer (WriterT)
-import Data.Char (ord, toLower)
+import Data.Char (ord, toLower, isDigit)
 import Data.List (foldl', unfoldr, elemIndex, intersect, nub, null, intercalate)
 import Data.List.Split (splitOn)
 import Data.Text (Text)
 import Debug.Trace (traceShow)
-import Web.Sqids.Utils.Internal (letterCount, swapChars)
+import Web.Sqids.Utils.Internal (letterCount, swapChars, wordsNoLongerThan)
 
 import qualified Data.Text as Text
 
@@ -94,16 +94,18 @@ sqidsOptions
   -> m (Valid SqidsOptions)
 sqidsOptions SqidsOptions{..} = do
 
+  let alphabetLetterCount = letterCount alphabet
+
   -- Check the length of the alphabet
   when (Text.length alphabet < 5) $
     throwError SqidsAlphabetTooShort
 
   -- Check that the alphabet has only unique characters
-  when (letterCount alphabet < Text.length alphabet) $
+  when (alphabetLetterCount < Text.length alphabet) $
     throwError SqidsAlphabetRepeatedCharacters
 
   -- Validate min. length
-  when (minLength < 0 || minLength > Text.length alphabet) $
+  when (minLength < 0 || minLength > alphabetLetterCount) $
     throwError SqidsInvalidMinLength
 
   pure $ Valid $ SqidsOptions
@@ -243,9 +245,11 @@ instance (MonadSqids m) => MonadSqids (SelectT r m) where
   setBlacklist = lift . setBlacklist
 
 -- Clean up blacklist:
+--
 --   1. All words must be lowercase
 --   2. No words should be less than three characters
 --   3. Remove words that contain characters that are not in the alphabet
+--
 curatedBlacklist :: Text -> [Text] -> [Text]
 curatedBlacklist _alphabet ws = (Text.map toLower) <$> filter isValid ws where
   isValid w = Text.length w >= 3 && Text.all (`Text.elem` _alphabet) w
@@ -382,5 +386,20 @@ toNumber sqid _alphabet = Text.foldl' mu 0 sqid
         Just n -> len * v + n
         _ -> error "toNumber: bad input"
 
--- isBlockedId :: (MonadSqids m) => String -> m Bool
--- isBlockedId = undefined
+isBlockedId :: [Text] -> Text -> Bool
+isBlockedId blacklist sqid = any disallowed filteredList
+  where
+    filteredList = wordsNoLongerThan (Text.length sqid) blacklist
+    lowercaseSqid = Text.map toLower sqid
+    --
+    disallowed :: Text -> Bool
+    disallowed w
+      | Text.length lowercaseSqid <= 3 || Text.length w <= 3 =
+        -- Short words have to match exactly
+        w == lowercaseSqid
+      | Text.any isDigit w =
+        -- Look for "leetspeak" words
+        w `Text.isPrefixOf` lowercaseSqid || w `Text.isSuffixOf` lowercaseSqid
+      | otherwise =
+        -- Check if word appears anywhere in the string
+        w `Text.isInfixOf` lowercaseSqid

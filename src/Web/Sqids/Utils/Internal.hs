@@ -3,6 +3,7 @@ module Web.Sqids.Utils.Internal
   , letters
   , swapChars
   , replaceCharAtIndex
+  , wordsNoLongerThan
 --  , elemIndex
 --  , unsafeElemIndex
   ) where
@@ -32,6 +33,9 @@ replaceCharAtIndex n char input = lhs <> Text.cons char rhs
   where
     lhs = Text.take n input
     rhs = Text.drop (n + 1) input
+
+wordsNoLongerThan :: Int -> [Text] -> [Text]
+wordsNoLongerThan n = filter $ (<= n) . Text.length
 
 -- unsafeElemIndex :: (Eq a) => a -> [a] -> Int
 -- unsafeElemIndex e = fromJust . elemIndex e

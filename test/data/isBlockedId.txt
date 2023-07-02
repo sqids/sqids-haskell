@@ -1,0 +1,6 @@
+id10t,estupido|id10ts|True
+id10t,estupido|id10tid|True
+id10t,estupido|someid10tid|False
+id10t,estupido|f00|False
+id10t,estupido|aaaestupidoaaa|True
+id10t,estupido|estupidoooo|True

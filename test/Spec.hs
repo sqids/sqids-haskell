@@ -127,14 +127,14 @@ testDecodeId = do
     _ ->
       error "testDecodeId: bad input"
 
-----testDecodeWithAlphabet :: SpecWith ()
-----testDecodeWithAlphabet = do
-----  withTestData "decodeWithAlphabet" $ \case
-----    alphabet : sqid : result : _ ->
-----      let msg = alphabet <> " " <> sqid
-----       in it msg (decodeWithAlphabet alphabet sqid `shouldBe` read result)
-----    _ ->
-----      error "testDecodeWithAlphabet: bad input"
+testDecodeWithAlphabet :: SpecWith ()
+testDecodeWithAlphabet = do
+  withTestData "decodeWithAlphabet" $ \case
+    alphabet : sqid : result : _ ->
+      let msg = alphabet <> " " <> sqid
+       in it msg (decodeWithAlphabet alphabet sqid `shouldBe` textRead result)
+    _ ->
+      error "testDecodeWithAlphabet: bad input"
 
 main :: IO ()
 main =
@@ -148,4 +148,4 @@ main =
     testIsBlockedId
 --    testEncode
     testDecodeId
---    testDecodeWithAlphabet
+    testDecodeWithAlphabet

@@ -4,12 +4,11 @@ module Web.Sqids.Utils.Internal
   , swapChars
   , replaceCharAtIndex
   , wordsNoLongerThan
---  , elemIndex
---  , unsafeElemIndex
+  , unsafeIndex
+  , unsafeUncons
   ) where
 
---import Data.List (elemIndex)
---import Data.Maybe (fromJust)
+import Data.Maybe (fromJust)
 import Data.Set (Set)
 import Data.Text (Text)
 
@@ -37,5 +36,8 @@ replaceCharAtIndex n char input = lhs <> Text.cons char rhs
 wordsNoLongerThan :: Int -> [Text] -> [Text]
 wordsNoLongerThan n = filter $ (<= n) . Text.length
 
--- unsafeElemIndex :: (Eq a) => a -> [a] -> Int
--- unsafeElemIndex e = fromJust . elemIndex e
+unsafeIndex :: Char -> Text -> Int
+unsafeIndex c = fromJust . Text.findIndex (== c)
+
+unsafeUncons :: Text -> (Char, Text)
+unsafeUncons = fromJust . Text.uncons

@@ -31,7 +31,7 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader (ReaderT)
-import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put)
+import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put, gets)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Cont (ContT)
 import Control.Monad.Trans.Maybe (MaybeT)
@@ -141,7 +141,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
 
   decode sqid = undefined
   --
-  getAlphabet = undefined
+  getAlphabet = gets (alphabet . getValid)
   setAlphabet newAlphabet = undefined
   --
   getMinLength = undefined

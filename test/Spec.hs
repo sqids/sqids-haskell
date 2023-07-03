@@ -5,6 +5,7 @@ import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
 import Web.Sqids.Internal -- (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, SqidsOptions(..), SqidsError(..), Valid(..))
 import Web.Sqids.Utils.Internal (swapChars)
+import Web.Sqids.ShuffleTests
 
 import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
@@ -74,13 +75,13 @@ testCuratedBlocklist =
     _ ->
       error "testCuratedBlocklist: bad input"
 
-testShuffle :: SpecWith ()
-testShuffle = do
-  withTestData "shuffle" $ \case
-    input : result : _ ->
-      it input (shuffle input `shouldBe` result)
-    _ ->
-      error "testShuffle: bad input"
+-- testShuffle :: SpecWith ()
+-- testShuffle = do
+--   withTestData "shuffle" $ \case
+--     input : result : _ ->
+--       it input (shuffle input `shouldBe` result)
+--     _ ->
+--       error "testShuffle: bad input"
 
 testToId :: SpecWith ()
 testToId = do
@@ -153,10 +154,12 @@ main =
     testSqidsOptions
     testToId
     testToNumber
-    testShuffle
+--    testShuffle
     testCuratedBlocklist
     testIsBlockedId
     testEncode
     testEncodeNumbers
     testDecodeId
     testDecodeWithAlphabet
+    --
+    testShuffle

@@ -3,7 +3,7 @@
 import Data.List.Split (splitOn)
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids.Internal -- (toId, toNumber, shuffle, curatedBlacklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, SqidsOptions(..), SqidsError(..), Valid(..))
+import Web.Sqids.Internal -- (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, SqidsOptions(..), SqidsError(..), Valid(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -45,34 +45,34 @@ testSqidsOptions =
     optionsWithShortAlphabet = SqidsOptions
       { alphabet = "abc"
       , minLength = 5
-      , blacklist = []
+      , blocklist = []
       }
     optionsWithInvalidAlphabet = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyza"
       , minLength = 5
-      , blacklist = []
+      , blocklist = []
       }
     optionsWithInvalidMinLength = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
       , minLength = -1
-      , blacklist = []
+      , blocklist = []
       }
     optionsValid = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
       , minLength = 5
-      , blacklist = []
+      , blocklist = []
       }
 
-testCuratedBlacklist :: SpecWith ()
-testCuratedBlacklist =
-  withTestData "curatedBlacklist" $ \case
+testCuratedBlocklist :: SpecWith ()
+testCuratedBlocklist =
+  withTestData "curatedBlocklist" $ \case
     alphabet : wlist : result : _ ->
       let msg = alphabet <> " " <> wlist
           ws = Text.splitOn "," wlist
           results = Text.splitOn "," result
-       in it msg (curatedBlacklist alphabet ws `shouldBe` results)
+       in it msg (curatedBlocklist alphabet ws `shouldBe` results)
     _ ->
-      error "testCuratedBlacklist: bad input"
+      error "testCuratedBlocklist: bad input"
 
 testShuffle :: SpecWith ()
 testShuffle = do
@@ -103,9 +103,9 @@ testToNumber = do
 testIsBlockedId :: SpecWith ()
 testIsBlockedId = do
   withTestData "isBlockedId" $ \case
-    blacklist : sqid : result : _ ->
-      let msg = blacklist <> " " <> sqid
-          wlist = Text.splitOn "," blacklist
+    blocklist : sqid : result : _ ->
+      let msg = blocklist <> " " <> sqid
+          wlist = Text.splitOn "," blocklist
        in it msg (isBlockedId wlist sqid == textRead result)
     _ ->
       error "testIsBlockedId: bad input"
@@ -154,7 +154,7 @@ main =
     testToId
     testToNumber
     testShuffle
-    testCuratedBlacklist
+    testCuratedBlocklist
     testIsBlockedId
     testEncode
     testEncodeNumbers

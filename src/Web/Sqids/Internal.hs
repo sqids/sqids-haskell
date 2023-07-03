@@ -16,7 +16,7 @@ module Web.Sqids.Internal
   , sqidsT
   , runSqids
   , sqids
-  , curatedBlacklist
+  , curatedBlocklist
   , encodeNumbers
   , decodeWithAlphabet
   , decodeId
@@ -52,7 +52,7 @@ data SqidsOptions = SqidsOptions
   -- ^ URL-safe characters
   , minLength :: Int
   -- ^ The minimum allowed length of IDs
-  , blacklist :: [Text]
+  , blocklist :: [Text]
   -- ^ A list of words that must never appear in IDs
   } deriving (Show, Eq, Ord)
 
@@ -73,7 +73,7 @@ defaultSqidsOptions :: SqidsOptions
 defaultSqidsOptions = SqidsOptions
   { alphabet  = Text.pack "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   , minLength = 0
-  , blacklist = []
+  , blocklist = []
   }
 
 type SqidsStack m = StateT (Valid SqidsOptions) (ExceptT SqidsError m)
@@ -85,8 +85,8 @@ class (Monad m) => MonadSqids m where
   setAlphabet  :: Text -> m ()
   getMinLength :: m Int
   setMinLength :: Int -> m ()
-  getBlacklist :: m [Text]
-  setBlacklist :: [Text] -> m ()
+  getBlocklist :: m [Text]
+  setBlocklist :: [Text] -> m ()
 
 -- | SqidsOptions constructor
 sqidsOptions
@@ -112,7 +112,7 @@ sqidsOptions SqidsOptions{..} = do
   pure $ Valid $ SqidsOptions
     { alphabet  = shuffle alphabet
     , minLength = minLength
-    , blacklist = curatedBlacklist alphabet blacklist
+    , blocklist = curatedBlocklist alphabet blocklist
     }
 
 newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
@@ -147,8 +147,8 @@ instance (Monad m) => MonadSqids (SqidsT m) where
   getMinLength = undefined
   setMinLength newMinLength = undefined
   --
-  getBlacklist = undefined
-  setBlacklist newBlacklist = undefined
+  getBlocklist = undefined
+  setBlocklist newBlocklist = undefined
 
 newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
   deriving
@@ -182,8 +182,8 @@ instance (MonadSqids m) => MonadSqids (StateT s m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
 instance (MonadSqids m) => MonadSqids (ExceptT e m) where
   encode       = lift . encode
@@ -192,8 +192,8 @@ instance (MonadSqids m) => MonadSqids (ExceptT e m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
 instance (MonadSqids m) => MonadSqids (ReaderT r m) where
   encode       = lift . encode
@@ -202,8 +202,8 @@ instance (MonadSqids m) => MonadSqids (ReaderT r m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
 instance (MonadSqids m, Monoid w) => MonadSqids (WriterT w m) where
   encode       = lift . encode
@@ -212,8 +212,8 @@ instance (MonadSqids m, Monoid w) => MonadSqids (WriterT w m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
 instance (MonadSqids m) => MonadSqids (MaybeT m) where
   encode       = lift . encode
@@ -222,8 +222,8 @@ instance (MonadSqids m) => MonadSqids (MaybeT m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
 instance (MonadSqids m) => MonadSqids (ContT r m) where
   encode       = lift . encode
@@ -232,8 +232,8 @@ instance (MonadSqids m) => MonadSqids (ContT r m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
 instance (MonadSqids m) => MonadSqids (SelectT r m) where
   encode       = lift . encode
@@ -242,17 +242,17 @@ instance (MonadSqids m) => MonadSqids (SelectT r m) where
   setAlphabet  = lift . setAlphabet
   getMinLength = lift getMinLength
   setMinLength = lift . setMinLength
-  getBlacklist = lift getBlacklist
-  setBlacklist = lift . setBlacklist
+  getBlocklist = lift getBlocklist
+  setBlocklist = lift . setBlocklist
 
--- Clean up blacklist:
+-- Clean up blocklist:
 --
 --   1. All words must be lowercase
 --   2. No words should be less than three characters
 --   3. Remove words that contain characters that are not in the alphabet
 --
-curatedBlacklist :: Text -> [Text] -> [Text]
-curatedBlacklist _alphabet ws = (Text.map toLower) <$> filter isValid ws where
+curatedBlocklist :: Text -> [Text] -> [Text]
+curatedBlocklist _alphabet ws = (Text.map toLower) <$> filter isValid ws where
   isValid w = Text.length w >= 3 && Text.all (`Text.elem` _alphabet) w
 
 -- | Internal function that encodes a list of unsigned integers into an ID
@@ -351,9 +351,9 @@ toNumber sqid _alphabet = Text.foldl' mu 0 sqid
         _ -> error "toNumber: bad input"
 
 isBlockedId :: [Text] -> Text -> Bool
-isBlockedId blacklist sqid = any disallowed filteredList
+isBlockedId blocklist sqid = any disallowed filteredList
   where
-    filteredList = wordsNoLongerThan (Text.length sqid) blacklist
+    filteredList = wordsNoLongerThan (Text.length sqid) blocklist
     lowercaseSqid = Text.map toLower sqid
     --
     disallowed :: Text -> Bool

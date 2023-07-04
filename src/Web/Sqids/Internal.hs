@@ -136,11 +136,14 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | any (< 0) numbers =
         -- Don't allow negative integers
         throwError SqidsNegativeNumberInInput
-    | otherwise =
-        pure (encodeNumbers undefined numbers False)
+    | otherwise = do
+        chars <- getAlphabet
+        pure (encodeNumbers chars numbers False)
 
-  decode sqid = undefined
-  --
+  decode sqid = do
+    chars <- getAlphabet
+    pure (decodeWithAlphabet chars sqid)
+
   getAlphabet = gets (alphabet . getValid)
   setAlphabet newAlphabet = undefined
   --

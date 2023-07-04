@@ -11,4 +11,4 @@ main =
     -- Official tests from sqids-spec
     --
     testShuffle
---    testBlocklist
+    testBlocklist

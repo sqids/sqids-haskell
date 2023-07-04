@@ -43,7 +43,7 @@ import Data.List (foldl', unfoldr, elemIndex, intersect, nub, null, intercalate)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust)
 import Data.Text (Text)
-import Debug.Trace (traceShow)
+--import Debug.Trace (traceShow)
 import Web.Sqids.Blocklist (defaultBlocklist)
 import Web.Sqids.Utils.Internal (letterCount, swapChars, wordsNoLongerThan, unsafeIndex, unsafeUncons)
 
@@ -52,7 +52,7 @@ import qualified Data.Text as Text
 data SqidsOptions = SqidsOptions
   { alphabet  :: Text
   -- ^ URL-safe characters
-  , minLength :: Int
+  , minLength :: Int                             -- TODO: Maybe Int
   -- ^ The minimum allowed length of IDs
   , blocklist :: [Text]
   -- ^ A list of words that must never appear in IDs
@@ -157,11 +157,15 @@ instance (Monad m) => MonadSqids (SqidsT m) where
   setBlocklist newBlocklist = undefined
 
 -- | Internal function that encodes a list of unsigned integers into an ID
-encodeNumbers_ :: (MonadSqids m) => [Int] -> Bool -> m Text
+encodeNumbers_ :: (MonadState SqidsState m, MonadSqids m) => [Int] -> Bool -> m Text
 encodeNumbers_ numbers partitioned = do
-  chars <- getAlphabet
-  wlist <- getBlocklist
+  (SqidsState chars minlen wlist) <- get
   let sqid = encodeNumbers chars numbers partitioned
+
+  -- if `minLength` is used and the ID is too short, add a throwaway number
+  when (minlen > Text.length sqid) $ do
+    -- TODO
+    undefined
 
   -- If the ID has a blocked word anywhere, add a throwaway number and
   -- start over
@@ -172,7 +176,12 @@ encodeNumbers_ numbers partitioned = do
   where
     newNumbers
       -- TODO
-      | partitioned = undefined
+      | partitioned = 
+          if 0 == 1  -- TODO
+            then undefined
+            else 
+              let (m:ms) = numbers
+               in (m + 1):ms
       | otherwise = 0 : numbers
 
 newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
@@ -282,7 +291,7 @@ curatedBlocklist _alphabet ws = (Text.map toLower) <$> filter isValid ws where
 
 encodeNumbers :: Text -> [Int] -> Bool -> Text
 encodeNumbers _alphabet numbers partitioned =
-    fst $ foldl' bu (Text.singleton prefix, alphabet') (zip numbers [0..])
+    fst $ foldl' run (Text.singleton prefix, alphabet') (zip numbers [0..])
   where
     len = Text.length _alphabet
     temp = Text.drop offset _alphabet <> Text.take offset _alphabet
@@ -297,7 +306,7 @@ encodeNumbers _alphabet numbers partitioned =
       let currentChar = Text.index _alphabet (v `mod` len)
        in ord currentChar + i + a
     --
-    bu (r, chars) (n, i) =
+    run (r, chars) (n, i) =
       let
         barrier
           | i == length numbers - 1 = Text.empty
@@ -313,12 +322,12 @@ decodeId = curry (unfoldr mu)
       | Text.null sqid = Nothing
       | otherwise =
           case Text.unsnoc alphabet of
-            Just (alphabetBarSeparator, separatorChar) ->
+            Just (alphabetWithoutSeparator, separatorChar) ->
               let separator = Text.singleton separatorChar in
                 case Text.splitOn separator sqid of
                   [] -> Nothing
                   (chunk : chunks) -> Just
-                    ( toNumber chunk alphabetBarSeparator
+                    ( toNumber chunk alphabetWithoutSeparator
                     , (Text.intercalate separator chunks, shuffle alphabet)
                     )
             _ ->

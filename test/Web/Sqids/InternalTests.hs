@@ -4,7 +4,7 @@ module Web.Sqids.InternalTests where
 
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, encodeNumbers, isBlockedId, SqidsOptions(..), SqidsError(..), Valid(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, encodeNumbers, isBlockedId, SqidsOptions(..), SqidsError(..), SqidsState(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -41,7 +41,8 @@ testSqidsOptions =
     it "invalid min length" $
       sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
     it "valid options" $
-      sqids (sqidsOptions optionsValid) `shouldBe` Right (Valid optionsValid{ alphabet = shuffle (alphabet optionsValid) })
+      sqids (sqidsOptions optionsValid) `shouldBe`
+        Right (SqidsState (shuffle (alphabet optionsValid)) (minLength optionsValid) (blocklist optionsValid))
   where
     optionsWithShortAlphabet = SqidsOptions
       { alphabet = "abc"

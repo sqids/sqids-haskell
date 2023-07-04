@@ -4,8 +4,8 @@
 module Web.Sqids.Internal
   ( SqidsOptions(..)
   , SqidsError(..)
-  , Valid(..)
-  , emptySqidsOptions
+  , SqidsState(..)
+  , emptySqidsState
   , defaultSqidsOptions
   , SqidsStack
   , MonadSqids(..)
@@ -56,8 +56,18 @@ data SqidsOptions = SqidsOptions
   -- ^ A list of words that must never appear in IDs
   } deriving (Show, Eq, Ord)
 
-newtype Valid a = Valid { getValid :: a }
-  deriving (Show, Read, Eq, Ord)
+defaultSqidsOptions :: SqidsOptions
+defaultSqidsOptions = SqidsOptions
+  { alphabet  = Text.pack "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+  , minLength = 0
+  , blocklist = []
+  }
+
+data SqidsState = SqidsState Text Int [Text]
+  deriving (Show, Eq, Ord)
+
+emptySqidsState :: SqidsState
+emptySqidsState = SqidsState Text.empty 0 []
 
 data SqidsError
   = SqidsAlphabetTooShort
@@ -66,17 +76,7 @@ data SqidsError
   | SqidsNegativeNumberInInput
   deriving (Show, Read, Eq, Ord)
 
-emptySqidsOptions :: SqidsOptions
-emptySqidsOptions = SqidsOptions Text.empty 0 []
-
-defaultSqidsOptions :: SqidsOptions
-defaultSqidsOptions = SqidsOptions
-  { alphabet  = Text.pack "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-  , minLength = 0
-  , blocklist = []
-  }
-
-type SqidsStack m = StateT (Valid SqidsOptions) (ExceptT SqidsError m)
+type SqidsStack m = StateT SqidsState (ExceptT SqidsError m)
 
 class (Monad m) => MonadSqids m where
   encode       :: [Int] -> m Text
@@ -92,7 +92,7 @@ class (Monad m) => MonadSqids m where
 sqidsOptions
   :: (MonadSqids m, MonadError SqidsError m)
   => SqidsOptions
-  -> m (Valid SqidsOptions)
+  -> m SqidsState
 sqidsOptions SqidsOptions{..} = do
 
   let alphabetLetterCount = letterCount alphabet
@@ -109,18 +109,14 @@ sqidsOptions SqidsOptions{..} = do
   when (minLength < 0 || minLength > alphabetLetterCount) $
     throwError SqidsInvalidMinLength
 
-  pure $ Valid $ SqidsOptions
-    { alphabet  = shuffle alphabet
-    , minLength = minLength
-    , blocklist = curatedBlocklist alphabet blocklist
-    }
+  pure $ SqidsState (shuffle alphabet) minLength (curatedBlocklist alphabet blocklist)
 
 newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
   deriving
     ( Functor
     , Applicative
     , Monad
-    , MonadState (Valid SqidsOptions)
+    , MonadState SqidsState
     , MonadError SqidsError
     )
 
@@ -144,7 +140,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     chars <- getAlphabet
     pure (decodeWithAlphabet chars sqid)
 
-  getAlphabet = gets (alphabet . getValid)
+  getAlphabet = undefined -- gets (alphabet . getValid)
   setAlphabet newAlphabet = undefined
   --
   getMinLength = undefined
@@ -158,14 +154,14 @@ newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
     ( Functor
     , Applicative
     , Monad
-    , MonadState (Valid SqidsOptions)
+    , MonadState SqidsState
     , MonadError SqidsError
     , MonadSqids
     )
 
 runSqidsT :: (Monad m) => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
 runSqidsT options _sqids =
-  runExceptT (evalStateT (unwrapSqidsT withOptions) (Valid emptySqidsOptions))
+  runExceptT (evalStateT (unwrapSqidsT withOptions) emptySqidsState)
   where
     withOptions = sqidsOptions options >>= put >> _sqids
 
@@ -271,18 +267,18 @@ encodeNumbers _alphabet numbers partitioned =
     prefix = Text.index temp 0
     partition = Text.index temp 1
     --
-    offset = 
+    offset =
       foldl' mu (length numbers) (zip numbers [0..]) `mod` len
     mu a (v, i) =
       let currentChar = Text.index _alphabet (v `mod` len)
        in ord currentChar + i + a
     --
-    bu (r, chars) (n, i) = 
+    bu (r, chars) (n, i) =
       let
         barrier
           | i == length numbers - 1 = Text.empty
           | otherwise =
-              Text.singleton $ 
+              Text.singleton $
                 if partitioned && i == 0 then partition else separator
         bork = Text.init chars
         separator = Text.last chars

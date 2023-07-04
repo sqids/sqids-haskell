@@ -18,6 +18,7 @@ module Web.Sqids.Internal
   , sqids
   , curatedBlocklist
   , encodeNumbers
+  , encodeNumbers_
   , decodeWithAlphabet
   , decodeId
   , shuffle
@@ -31,7 +32,7 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader (ReaderT)
-import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put, gets)
+import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put, get)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Cont (ContT)
 import Control.Monad.Trans.Maybe (MaybeT)
@@ -43,6 +44,7 @@ import Data.List.Split (splitOn)
 import Data.Maybe (fromJust)
 import Data.Text (Text)
 import Debug.Trace (traceShow)
+import Web.Sqids.Blocklist (defaultBlocklist)
 import Web.Sqids.Utils.Internal (letterCount, swapChars, wordsNoLongerThan, unsafeIndex, unsafeUncons)
 
 import qualified Data.Text as Text
@@ -60,7 +62,7 @@ defaultSqidsOptions :: SqidsOptions
 defaultSqidsOptions = SqidsOptions
   { alphabet  = Text.pack "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
   , minLength = 0
-  , blocklist = []
+  , blocklist = defaultBlocklist
   }
 
 data SqidsState = SqidsState Text Int [Text]
@@ -102,7 +104,7 @@ sqidsOptions SqidsOptions{..} = do
     throwError SqidsAlphabetTooShort
 
   -- Check that the alphabet has only unique characters
-  when (alphabetLetterCount < Text.length alphabet) $
+  when (alphabetLetterCount /= Text.length alphabet) $
     throwError SqidsAlphabetRepeatedCharacters
 
   -- Validate min. length
@@ -132,22 +134,45 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | any (< 0) numbers =
         -- Don't allow negative integers
         throwError SqidsNegativeNumberInInput
-    | otherwise = do
-        chars <- getAlphabet
-        pure (encodeNumbers chars numbers False)
+    | otherwise = 
+        encodeNumbers_ numbers False
 
   decode sqid = do
     chars <- getAlphabet
     pure (decodeWithAlphabet chars sqid)
 
-  getAlphabet = undefined -- gets (alphabet . getValid)
+  getAlphabet = do
+    (SqidsState _alphabet _ _) <- get
+    pure _alphabet
+
   setAlphabet newAlphabet = undefined
   --
   getMinLength = undefined
   setMinLength newMinLength = undefined
   --
-  getBlocklist = undefined
+  getBlocklist = do
+    (SqidsState _ _ _blocklist) <- get
+    pure _blocklist
+
   setBlocklist newBlocklist = undefined
+
+encodeNumbers_ :: (MonadSqids m) => [Int] -> Bool -> m Text
+encodeNumbers_ numbers partitioned = do
+  chars <- getAlphabet
+  wlist <- getBlocklist
+  let sqid = encodeNumbers chars numbers partitioned
+
+  -- If the ID has a blocked word anywhere, add a throwaway number and 
+  -- start over
+  if isBlockedId wlist sqid 
+    then encodeNumbers_ newNumbers True 
+    else pure sqid 
+
+  where
+    newNumbers
+      -- TODO
+      | partitioned = undefined
+      | otherwise = 0 : numbers
 
 newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
   deriving

@@ -1,48 +1,53 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sqids.BlocklistTests where
 
+import Data.Text (Text)
 import Test.Hspec
 import Web.Sqids.Internal
 
 withEmptyBlocklist :: Sqids a -> Either SqidsError a
 withEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = [] }
 
+withNonEmptyBlocklist :: Sqids a -> Either SqidsError a
+withNonEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = ["AvTg"] }
+
+withCustomBlocklist :: [Text] -> Sqids a -> Either SqidsError a
+withCustomBlocklist blocklist = runSqids defaultSqidsOptions { blocklist = blocklist }
+
 testBlocklist :: SpecWith ()
 testBlocklist = do
   describe "blocklist" $ do
     it "if no custom blocklist param, use the default blocklist" $ do
-      (sqids $ decode "sexy") `shouldBe` Right [ 200044 ]
-      (sqids $ encode [ 200044 ]) `shouldBe` Right "d171vI"
+      sqids (decode "sexy") `shouldBe` Right [ 200044 ]
+      sqids (encode [ 200044 ]) `shouldBe` Right "d171vI"
 
     it "if an empty blocklist param passed, don't use any blocklist" $ do
-      (withEmptyBlocklist $ decode "sexy") `shouldBe` Right [ 200044 ]
-      (withEmptyBlocklist $ encode [ 200044 ]) `shouldBe` Right "sexy"
+      withEmptyBlocklist (decode "sexy") `shouldBe` Right [ 200044 ]
+      withEmptyBlocklist (encode [ 200044 ]) `shouldBe` Right "sexy"
 
---test(`if an empty blocklist param passed, don't use any blocklist`, () => {
---	const sqids = new Sqids({
---		blocklist: new Set([])
---	});
+    it "if a non-empty blocklist param passed, use only that" $ do
+      withNonEmptyBlocklist (decode "sexy") `shouldBe` Right [ 200044 ]
+      withNonEmptyBlocklist (encode [ 200044 ]) `shouldBe` Right "sexy"
+
+      withNonEmptyBlocklist (decode "AvTg") `shouldBe` Right [ 100000 ]
+      withNonEmptyBlocklist (encode [ 100000 ]) `shouldBe` Right "7T1X8k"
+      withNonEmptyBlocklist (decode "7T1X8k") `shouldBe` Right [ 100000 ]
+
+    it "blocklist" $ do
+      let blocklist = 
+            [ "8QRLaD"     -- Normal result of first encoding, let's block that word on purpose
+            , "7T1cd0dL"   -- Result of second encoding
+            , "UeIe"       -- Result of third encoding is `RA8UeIe7` - Let's block a substring
+            , "imhw"       -- Result of 4th encoding is `WM3Limhw` - Let's block the postfix
+            , "LfUQ"       -- Result of 4th encoding is `LfUQh4HN` - Let's block the prefix
+            ]
+      withCustomBlocklist blocklist (encode [1, 2, 3]) `shouldBe` Right "TM0x1Mxz"
+      withCustomBlocklist blocklist (decode "TM0x1Mxz") `shouldBe` Right [1, 2, 3]
+
+--    it "decoding blocklist words should still work" $ do
 --
---	expect.soft(sqids.decode('sexy')).toEqual([200044]);
---	expect.soft(sqids.encode([200044])).toBe('sexy');
---});
---
---test('if a non-empty blocklist param passed, use only that', () => {
---	const sqids = new Sqids({
---		blocklist: new Set([
---			'AvTg' // originally encoded [100000]
---		])
---	});
---
---	// make sure we don't use the default blocklist
---	expect.soft(sqids.decode('sexy')).toEqual([200044]);
---	expect.soft(sqids.encode([200044])).toBe('sexy');
---
---	// make sure we are using the passed blocklist
---	expect.soft(sqids.decode('AvTg')).toEqual([100000]);
---	expect.soft(sqids.encode([100000])).toBe('7T1X8k');
---	expect.soft(sqids.decode('7T1X8k')).toEqual([100000]);
---});
+--    it "match against a short blocklist word" $ do
+
 --
 --test('blocklist', () => {
 --	const sqids = new Sqids({

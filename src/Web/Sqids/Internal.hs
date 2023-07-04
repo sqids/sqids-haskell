@@ -134,7 +134,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | any (< 0) numbers =
         -- Don't allow negative integers
         throwError SqidsNegativeNumberInInput
-    | otherwise = 
+    | otherwise =
         encodeNumbers_ numbers False
 
   decode sqid = do
@@ -156,17 +156,18 @@ instance (Monad m) => MonadSqids (SqidsT m) where
 
   setBlocklist newBlocklist = undefined
 
+-- | Internal function that encodes a list of unsigned integers into an ID
 encodeNumbers_ :: (MonadSqids m) => [Int] -> Bool -> m Text
 encodeNumbers_ numbers partitioned = do
   chars <- getAlphabet
   wlist <- getBlocklist
   let sqid = encodeNumbers chars numbers partitioned
 
-  -- If the ID has a blocked word anywhere, add a throwaway number and 
+  -- If the ID has a blocked word anywhere, add a throwaway number and
   -- start over
-  if isBlockedId wlist sqid 
-    then encodeNumbers_ newNumbers True 
-    else pure sqid 
+  if isBlockedId wlist sqid
+    then encodeNumbers_ newNumbers True
+    else pure sqid
 
   where
     newNumbers
@@ -279,11 +280,9 @@ curatedBlocklist :: Text -> [Text] -> [Text]
 curatedBlocklist _alphabet ws = (Text.map toLower) <$> filter isValid ws where
   isValid w = Text.length w >= 3 && Text.all (`Text.elem` _alphabet) w
 
--- | Internal function that encodes a list of unsigned integers into an ID
 encodeNumbers :: Text -> [Int] -> Bool -> Text
 encodeNumbers _alphabet numbers partitioned =
     fst $ foldl' bu (Text.singleton prefix, alphabet') (zip numbers [0..])
-    --foo alphabet' numbers (Text.singleton prefix)
   where
     len = Text.length _alphabet
     temp = Text.drop offset _alphabet <> Text.take offset _alphabet
@@ -302,13 +301,10 @@ encodeNumbers _alphabet numbers partitioned =
       let
         barrier
           | i == length numbers - 1 = Text.empty
-          | otherwise =
-              Text.singleton $
-                if partitioned && i == 0 then partition else separator
-        bork = Text.init chars
-        separator = Text.last chars
+          | otherwise = Text.singleton $
+              if partitioned && i == 0 then partition else Text.last chars
       in
-        (r <> toId n bork <> barrier, shuffle chars)
+        (r <> toId n (Text.init chars) <> barrier, shuffle chars)
 
 decodeId :: Text -> Text -> [Int]
 decodeId = curry (unfoldr mu)

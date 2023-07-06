@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sqids.ShuffleTests (testShuffle) where
 
-import Test.Hspec
+import Test.Hspec (SpecWith, describe, it, shouldBe)
 import Data.Function ((&))
 import Web.Sqids.Internal (defaultSqidsOptions, alphabet, shuffle)
 

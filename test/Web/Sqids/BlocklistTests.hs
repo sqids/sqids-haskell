@@ -3,7 +3,7 @@ module Web.Sqids.BlocklistTests where
 
 import Control.Monad ((>=>))
 import Data.Text (Text)
-import Test.Hspec
+import Test.Hspec (SpecWith, describe, it, shouldBe)
 import Web.Sqids.Internal
 
 withEmptyBlocklist :: Sqids a -> Either SqidsError a

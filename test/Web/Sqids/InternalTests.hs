@@ -4,7 +4,7 @@ module Web.Sqids.InternalTests where
 
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, encode, decodeId, decodeWithAlphabet, encodeNumbers, isBlockedId, SqidsOptions(..), SqidsError(..), SqidsState(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, runSqids, encode, decodeId, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -46,22 +46,22 @@ testSqidsOptions =
   where
     optionsWithShortAlphabet = SqidsOptions
       { alphabet = "abc"
-      , minLength = 5
+      , minLength = Just 5
       , blocklist = []
       }
     optionsWithInvalidAlphabet = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyza"
-      , minLength = 5
+      , minLength = Just 5
       , blocklist = []
       }
     optionsWithInvalidMinLength = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
-      , minLength = -1
+      , minLength = Just (-1)
       , blocklist = []
       }
     optionsValid = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
-      , minLength = 5
+      , minLength = Just 5
       , blocklist = []
       }
 
@@ -120,15 +120,26 @@ testEncode = do
     it "list with negative values" $
       sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
 
-testEncodeNumbers :: SpecWith ()
-testEncodeNumbers = do
-  withTestData "encodeNumbers" $ \case
-    alphabet : numbers : partitioned : result : _ ->
-      let msg = alphabet <> " " <> numbers <> " " <> partitioned
+testEncodeWithMinLength :: SpecWith ()
+testEncodeWithMinLength = do
+  withTestData "encodeWithMinLength" $ \case
+    numbers : minlen : result : _ ->
+      let msg = numbers <> " " <> minlen
           nlist = textRead <$> (Text.splitOn "," numbers)
-       in it msg (encodeNumbers alphabet nlist (textRead partitioned) `shouldBe` result)
+       in it msg $ do
+         runSqids (defaultSqidsOptions{ minLength = Just (textRead minlen) }) (encode nlist) `shouldBe` Right result
     _ ->
-      error "testEncodeNumbers: bad input"
+      error "testEncodeWithMinLength: bad input"
+
+--testEncodeNumbers :: SpecWith ()
+--testEncodeNumbers = do
+--  withTestData "encodeNumbers" $ \case
+--    alphabet : numbers : partitioned : result : _ ->
+--      let msg = alphabet <> " " <> numbers <> " " <> partitioned
+--          nlist = textRead <$> (Text.splitOn "," numbers)
+--       in it msg (encodeNumbers alphabet nlist (textRead partitioned) `shouldBe` result)
+--    _ ->
+--      error "testEncodeNumbers: bad input"
 
 testDecodeId :: SpecWith ()
 testDecodeId = do
@@ -158,6 +169,7 @@ testInternals = do
   testCuratedBlocklist
   testIsBlockedId
   testEncode
-  testEncodeNumbers
+  testEncodeWithMinLength
+--  testEncodeNumbers
   testDecodeId
   testDecodeWithAlphabet

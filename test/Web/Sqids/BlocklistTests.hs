@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Web.Sqids.BlocklistTests where
+module Web.Sqids.BlocklistTests (testBlocklist) where
 
 import Control.Monad ((>=>))
 import Data.Text (Text)

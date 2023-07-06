@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Web.Sqids.EncodingTests where
+module Web.Sqids.EncodingTests (testEncoding) where
 
 import Control.Monad (forM_, (<=<))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids.Internal (decode, encode, sqids)
+import Web.Sqids.Internal (decode, encode, sqids, SqidsError(..))
 
 testEncodeDecodeAll :: [(Text, [Int])] -> IO ()
 testEncodeDecodeAll ss =

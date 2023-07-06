@@ -3,6 +3,7 @@ import Web.Sqids.AlphabetTests (testAlphabet)
 import Web.Sqids.BlocklistTests (testBlocklist)
 import Web.Sqids.EncodingTests (testEncoding)
 import Web.Sqids.InternalTests (testInternals)
+import Web.Sqids.MinLengthTests (testMinLength)
 import Web.Sqids.ShuffleTests (testShuffle)
 
 main :: IO ()
@@ -18,3 +19,4 @@ main =
       testShuffle
       testBlocklist
       testEncoding
+      testMinLength

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Web.Sqids.AlphabetTests where
+module Web.Sqids.AlphabetTests (testAlphabet) where
 
 import Control.Monad ((<=<))
 import Test.Hspec (SpecWith, describe, it, shouldBe)

@@ -80,18 +80,18 @@ testEncoding = do
 
       Right numbers `shouldBe` sqids ((decode <=< encode) numbers)
 
-    it "encoding no numbers" $ do
+    it "encoding no numbers" $
 
       sqids (encode []) `shouldBe` Right ""
 
-    it "decoding empty string" $ do
+    it "decoding empty string" $
 
       sqids (decode "") `shouldBe` Right []
 
-    it "decoding an ID with an invalid character" $ do
+    it "decoding an ID with an invalid character" $
 
       sqids (decode "*") `shouldBe` Right []
 
-    it "encoding no numbers" $ do
+    it "encoding no numbers" $
 
       sqids (encode [-1]) `shouldBe` Left SqidsNegativeNumberInInput

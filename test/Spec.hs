@@ -5,6 +5,7 @@ import Web.Sqids.EncodingTests (testEncoding)
 import Web.Sqids.InternalTests (testInternals)
 import Web.Sqids.MinLengthTests (testMinLength)
 import Web.Sqids.ShuffleTests (testShuffle)
+import Web.Sqids.UniquesTests (testUniques)
 
 main :: IO ()
 main =
@@ -16,7 +17,8 @@ main =
     --
     describe "\nOfficial sqids-spec test cases\n" $ do
       testAlphabet
-      testShuffle
       testBlocklist
       testEncoding
       testMinLength
+      testShuffle
+      testUniques

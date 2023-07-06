@@ -60,6 +60,5 @@ testBlocklist = do
       withCustomBlocklist blocklist (decode "WM3Limhw") `shouldBe` Right [1, 2, 3]
       withCustomBlocklist blocklist (decode "LfUQh4HN") `shouldBe` Right [1, 2, 3]
 
-    it "match against a short blocklist word" $ do
-      let blocklist = [ "pPQ" ]
-      withCustomBlocklist blocklist ((encode >=> decode) [1000]) `shouldBe` Right [1000]
+    it "match against a short blocklist word" $
+      withCustomBlocklist [ "pPQ" ] ((encode >=> decode) [1000]) `shouldBe` Right [1000]

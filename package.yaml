@@ -48,5 +48,6 @@ tests:
     dependencies:
     - sqids-haskell
     - text >= 2.0.2 && < 2.1.0
+    - containers >= 0.6.7 && < 0.7.0
     - hspec >= 2.10.10 && < 2.11
     - split >= 0.2.3.5 && < 0.3.0.0

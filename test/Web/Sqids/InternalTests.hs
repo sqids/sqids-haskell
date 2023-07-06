@@ -120,26 +120,24 @@ testEncode = do
     it "list with negative values" $
       sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
 
+  withTestData "encode" $ \case
+    alphabet : numbers : result : _ ->
+      let msg = alphabet <> " " <> numbers 
+          nums = textRead <$> (Text.splitOn "," numbers)
+       in it msg (runSqids defaultSqidsOptions{ alphabet = alphabet } (encode nums) `shouldBe` Right result)
+    _ ->
+      error "testEncode: bad input"
+
 testEncodeWithMinLength :: SpecWith ()
 testEncodeWithMinLength = do
   withTestData "encodeWithMinLength" $ \case
     numbers : minlen : result : _ ->
       let msg = numbers <> " " <> minlen
-          nlist = textRead <$> (Text.splitOn "," numbers)
+          nums = textRead <$> (Text.splitOn "," numbers)
        in it msg $ do
-         runSqids (defaultSqidsOptions{ minLength = Just (textRead minlen) }) (encode nlist) `shouldBe` Right result
+         runSqids (defaultSqidsOptions{ minLength = Just (textRead minlen) }) (encode nums) `shouldBe` Right result
     _ ->
       error "testEncodeWithMinLength: bad input"
-
---testEncodeNumbers :: SpecWith ()
---testEncodeNumbers = do
---  withTestData "encodeNumbers" $ \case
---    alphabet : numbers : partitioned : result : _ ->
---      let msg = alphabet <> " " <> numbers <> " " <> partitioned
---          nlist = textRead <$> (Text.splitOn "," numbers)
---       in it msg (encodeNumbers alphabet nlist (textRead partitioned) `shouldBe` result)
---    _ ->
---      error "testEncodeNumbers: bad input"
 
 testDecodeId :: SpecWith ()
 testDecodeId = do

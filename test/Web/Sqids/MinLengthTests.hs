@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sqids.MinLengthTests (testMinLength) where
 
-import Control.Monad.Trans.Class (lift)
 import Control.Monad (forM_)
 import Data.Function ((&))
 import Data.Text (Text)

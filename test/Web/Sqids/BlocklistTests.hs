@@ -34,7 +34,6 @@ testBlocklist = do
       withNonEmptyBlocklist (encode [ 100000 ]) `shouldBe` Right "7T1X8k"
       withNonEmptyBlocklist (decode "7T1X8k") `shouldBe` Right [ 100000 ]
 
-    -- TODO: More descriptive message?
     it "blocklist" $ do
       let blocklist =
             [ "8QRLaD"     -- Normal result of first encoding -- Let's block that word on purpose

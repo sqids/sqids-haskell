@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sqids.UniquesTests where
 
+import Data.Function ((&))
 import Test.Hspec (SpecWith, describe, it, shouldBe)
 import Web.Sqids.Internal -- ()
 
@@ -14,7 +15,7 @@ testUniques = do
   pure ()
 --  describe "uniques" $ do
 --    it "uniques, with padding" $ do
---      --let len = Text.length (alphabet defaultSqidsOptions)
+--      --let len = Text.length (defaultSqidsOptions & alphabet)
 --      --    options = defaultSqidsOptions{ minLength = len }
 --      --    set = mempty
 --

@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sqids.InternalTests where
 
+import Control.Monad.State.Strict (get)
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
 import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, runSqids, encode, decodeId, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
@@ -41,7 +42,7 @@ testSqidsOptions =
     it "invalid min length" $
       sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
     it "valid options" $
-      sqids (sqidsOptions optionsValid) `shouldBe`
+      sqids (sqidsOptions optionsValid >> get) `shouldBe`
         Right (SqidsState (shuffle (alphabet optionsValid)) (minLength optionsValid) (blocklist optionsValid))
   where
     optionsWithShortAlphabet = SqidsOptions
@@ -168,6 +169,5 @@ testInternals = do
   testIsBlockedId
   testEncode
   testEncodeWithMinLength
---  testEncodeNumbers
   testDecodeId
   testDecodeWithAlphabet

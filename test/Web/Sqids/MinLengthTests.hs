@@ -1,18 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Web.Sqids.MinLengthTests (testMinLength) where
 
+import Control.Monad.Trans.Class (lift)
 import Control.Monad (forM_)
 import Data.Function ((&))
 import Data.Text (Text)
-import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids.Internal (decode, encode, sqids, runSqids, defaultSqidsOptions, SqidsOptions(..), SqidsError(..))
+import Test.Hspec (SpecWith, describe, it, shouldBe, shouldSatisfy)
+import Web.Sqids.Internal (decode, encode, sqids, runSqids, defaultSqidsOptions, sqidsOptions, SqidsOptions(..), SqidsError(..))
 
 import qualified Data.Text as Text
 
 -- TODO: DRY
 testEncodeDecodeAll :: [(Text, [Int])] -> IO ()
 testEncodeDecodeAll ss = do
-  let len = Text.length (alphabet defaultSqidsOptions)
+  let len = Text.length (defaultSqidsOptions & alphabet)
   forM_ ss $ \(sqid, numbers) -> do
     runSqids defaultSqidsOptions{ minLength = Just len } (encode numbers) `shouldBe` Right sqid
     runSqids defaultSqidsOptions{ minLength = Just len } (decode sqid) `shouldBe` Right numbers
@@ -23,14 +24,14 @@ testMinLength = do
     it "simple" $ do
       let numbers = [1, 2, 3]
           sqid = "75JILToVsGerOADWmHlY38xvbaNZKQ9wdFS0B6kcMEtnRpgizhjU42qT1cd0dL"
-          len = Text.length (alphabet defaultSqidsOptions)
-                
+          len = Text.length (defaultSqidsOptions & alphabet)
+
       runSqids defaultSqidsOptions{ minLength = Just len } (encode numbers) `shouldBe` Right sqid
       runSqids defaultSqidsOptions{ minLength = Just len } (decode sqid) `shouldBe` Right numbers
 
-    it "incremental numbers" $ do
+    it "incremental numbers" $
       testEncodeDecodeAll
-        [ ( "jf26PLNeO5WbJDUV7FmMtlGXps3CoqkHnZ8cYd19yIiTAQuvKSExzhrRghBlwf", [0, 0] )  
+        [ ( "jf26PLNeO5WbJDUV7FmMtlGXps3CoqkHnZ8cYd19yIiTAQuvKSExzhrRghBlwf", [0, 0] )
         , ( "vQLUq7zWXC6k9cNOtgJ2ZK8rbxuipBFAS10yTdYeRa3ojHwGnmMV4PDhESI2jL", [0, 1] )
         , ( "YhcpVK3COXbifmnZoLuxWgBQwtjsSaDGAdr0ReTHM16yI9vU8JNzlFq5Eu2oPp", [0, 2] )
         , ( "OTkn9daFgDZX6LbmfxI83RSKetJu0APihlsrYoz5pvQw7GyWHEUcN2jBqd4kJ9", [0, 3] )
@@ -42,13 +43,29 @@ testMinLength = do
         , ( "94dRPIZ6irlXWvTbKywFuAhBoECQOVMjDJp53s2xeqaSzHY8nc17tmkLGwfGNl", [0, 9] )
         ]
 
---    -- TODO
---    it "min lengths" $ do
---      undefined
+    it "min lengths" $ do
+      let len = Text.length (defaultSqidsOptions & alphabet)
+          inputMinLengths = [0, 1, 5, 10, len]
+          inputNumbers =
+              [ [0]
+              , [0, 0, 0, 0, 0]
+              , [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+              , [100, 200, 300]
+              , [1000, 2000, 3000]
+              , [1000000]
+              , [maxBound :: Int]
+              ]
+
+      forM_ ((,) <$> inputMinLengths <*> inputNumbers) $ \(minLength, numbers) -> do
+        let result = runSqids defaultSqidsOptions{ minLength = Just minLength } (encode numbers)
+        case result of
+          Left _ -> error "error: min lengths"
+          Right sqid -> do
+            sqid `shouldSatisfy` ((>= minLength) . Text.length)
+            sqids (decode sqid) `shouldBe` Right numbers
 
     it "out-of-range invalid min length" $ do
-      let len = Text.length (alphabet defaultSqidsOptions)
+      let len = Text.length (defaultSqidsOptions & alphabet)
 
-      runSqids defaultSqidsOptions{ minLength = Just (-1) } (pure ()) `shouldBe` Left SqidsInvalidMinLength
-
-      runSqids defaultSqidsOptions{ minLength = Just (len + 1) } (pure ()) `shouldBe` Left SqidsInvalidMinLength
+      sqids (sqidsOptions defaultSqidsOptions{ minLength = Just (-1) }) `shouldBe` Left SqidsInvalidMinLength
+      sqids (sqidsOptions defaultSqidsOptions{ minLength = Just (len + 1) }) `shouldBe` Left SqidsInvalidMinLength

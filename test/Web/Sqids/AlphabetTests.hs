@@ -3,7 +3,7 @@ module Web.Sqids.AlphabetTests (testAlphabet) where
 
 import Control.Monad ((<=<))
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids.Internal (defaultSqidsOptions, alphabet, encode, decode, runSqids, SqidsError(..))
+import Web.Sqids.Internal (defaultSqidsOptions, alphabet, encode, decode, runSqids, sqids, sqidsOptions, SqidsError(..))
 
 testAlphabet :: SpecWith ()
 testAlphabet = do
@@ -29,10 +29,10 @@ testAlphabet = do
 
       runSqids options ((decode <=< encode) numbers) `shouldBe` Right numbers
 
-    it "repeating alphabet characters" $ do
-      runSqids (defaultSqidsOptions{ alphabet = "aabcdefg" }) (pure ()) 
+    it "repeating alphabet characters" $
+      sqids (sqidsOptions (defaultSqidsOptions{ alphabet = "aabcdefg" }))
         `shouldBe` Left SqidsAlphabetRepeatedCharacters
 
-    it "too short of an alphabet" $ do
-      runSqids (defaultSqidsOptions{ alphabet = "abcd" }) (pure ()) 
+    it "too short of an alphabet" $
+      sqids (sqidsOptions (defaultSqidsOptions{ alphabet = "abcd" }))
         `shouldBe` Left SqidsAlphabetTooShort

@@ -92,6 +92,6 @@ testEncoding = do
 
       sqids (decode "*") `shouldBe` Right []
 
-    it "encoding no numbers" $
+    it "encoding out-of-range numbers" $
 
       sqids (encode [-1]) `shouldBe` Left SqidsNegativeNumberInInput

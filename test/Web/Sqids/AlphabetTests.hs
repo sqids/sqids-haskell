@@ -3,7 +3,7 @@ module Web.Sqids.AlphabetTests (testAlphabet) where
 
 import Control.Monad ((<=<))
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids.Internal (defaultSqidsOptions, alphabet, encode, decode, runSqids, sqids, sqidsOptions, SqidsError(..))
+import Web.Sqids
 
 testAlphabet :: SpecWith ()
 testAlphabet = do

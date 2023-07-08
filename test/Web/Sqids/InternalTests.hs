@@ -5,7 +5,7 @@ module Web.Sqids.InternalTests where
 import Control.Monad.State.Strict (get)
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids.Internal (toId, toNumber, shuffle, curatedBlocklist, sqidsOptions, sqids, runSqids, encode, decodeId, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, filteredBlocklist, sqidsOptions, sqids, runSqids, encode, decodeId, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -68,12 +68,12 @@ testSqidsOptions =
 
 testCuratedBlocklist :: SpecWith ()
 testCuratedBlocklist =
-  withTestData "curatedBlocklist" $ \case
+  withTestData "filteredBlocklist" $ \case
     alphabet : wlist : result : _ ->
       let msg = alphabet <> " " <> wlist
           ws = Text.splitOn "," wlist
           results = Text.splitOn "," result
-       in it msg (curatedBlocklist alphabet ws `shouldBe` results)
+       in it msg (filteredBlocklist alphabet ws `shouldBe` results)
     _ ->
       error "testCuratedBlocklist: bad input"
 

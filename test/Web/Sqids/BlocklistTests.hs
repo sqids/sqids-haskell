@@ -4,7 +4,7 @@ module Web.Sqids.BlocklistTests (testBlocklist) where
 import Control.Monad ((>=>))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids.Internal
+import Web.Sqids
 
 withEmptyBlocklist :: Sqids a -> Either SqidsError a
 withEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = [] }

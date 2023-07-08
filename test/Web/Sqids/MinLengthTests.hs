@@ -5,7 +5,7 @@ import Control.Monad (forM_)
 import Data.Function ((&))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe, shouldSatisfy)
-import Web.Sqids.Internal (decode, encode, sqids, runSqids, defaultSqidsOptions, sqidsOptions, SqidsOptions(..), SqidsError(..))
+import Web.Sqids
 
 import qualified Data.Text as Text
 

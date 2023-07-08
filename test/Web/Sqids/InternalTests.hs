@@ -47,22 +47,22 @@ testSqidsOptions =
   where
     optionsWithShortAlphabet = SqidsOptions
       { alphabet = "abc"
-      , minLength = Just 5
+      , minLength = 5
       , blocklist = []
       }
     optionsWithInvalidAlphabet = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyza"
-      , minLength = Just 5
+      , minLength = 5
       , blocklist = []
       }
     optionsWithInvalidMinLength = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
-      , minLength = Just (-1)
+      , minLength = (-1)
       , blocklist = []
       }
     optionsValid = SqidsOptions
       { alphabet = "abcdefghijklmnopqrstuvwxyz"
-      , minLength = Just 5
+      , minLength = 5
       , blocklist = []
       }
 
@@ -136,7 +136,7 @@ testEncodeWithMinLength = do
       let msg = numbers <> " " <> minlen
           nums = textRead <$> (Text.splitOn "," numbers)
        in it msg $ do
-         runSqids (defaultSqidsOptions{ minLength = Just (textRead minlen) }) (encode nums) `shouldBe` Right result
+         runSqids (defaultSqidsOptions{ minLength = textRead minlen }) (encode nums) `shouldBe` Right result
     _ ->
       error "testEncodeWithMinLength: bad input"
 

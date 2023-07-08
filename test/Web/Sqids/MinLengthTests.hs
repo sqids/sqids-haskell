@@ -14,8 +14,8 @@ testEncodeDecodeAll :: [(Text, [Int])] -> IO ()
 testEncodeDecodeAll ss = do
   let len = Text.length (defaultSqidsOptions & alphabet)
   forM_ ss $ \(sqid, numbers) -> do
-    runSqids defaultSqidsOptions{ minLength = Just len } (encode numbers) `shouldBe` Right sqid
-    runSqids defaultSqidsOptions{ minLength = Just len } (decode sqid) `shouldBe` Right numbers
+    runSqids defaultSqidsOptions{ minLength = len } (encode numbers) `shouldBe` Right sqid
+    runSqids defaultSqidsOptions{ minLength = len } (decode sqid) `shouldBe` Right numbers
 
 testMinLength :: SpecWith ()
 testMinLength = do
@@ -25,8 +25,8 @@ testMinLength = do
           sqid = "75JILToVsGerOADWmHlY38xvbaNZKQ9wdFS0B6kcMEtnRpgizhjU42qT1cd0dL"
           len = Text.length (defaultSqidsOptions & alphabet)
 
-      runSqids defaultSqidsOptions{ minLength = Just len } (encode numbers) `shouldBe` Right sqid
-      runSqids defaultSqidsOptions{ minLength = Just len } (decode sqid) `shouldBe` Right numbers
+      runSqids defaultSqidsOptions{ minLength = len } (encode numbers) `shouldBe` Right sqid
+      runSqids defaultSqidsOptions{ minLength = len } (decode sqid) `shouldBe` Right numbers
 
     it "incremental numbers" $
       testEncodeDecodeAll
@@ -56,7 +56,7 @@ testMinLength = do
               ]
 
       forM_ ((,) <$> inputMinLengths <*> inputNumbers) $ \(minLength, numbers) -> do
-        let result = runSqids defaultSqidsOptions{ minLength = Just minLength } (encode numbers)
+        let result = runSqids defaultSqidsOptions{ minLength = minLength } (encode numbers)
         case result of
           Left _ -> error "error: min lengths"
           Right sqid -> do
@@ -66,5 +66,5 @@ testMinLength = do
     it "out-of-range invalid min length" $ do
       let len = Text.length (defaultSqidsOptions & alphabet)
 
-      sqids (sqidsOptions defaultSqidsOptions{ minLength = Just (-1) }) `shouldBe` Left SqidsInvalidMinLength
-      sqids (sqidsOptions defaultSqidsOptions{ minLength = Just (len + 1) }) `shouldBe` Left SqidsInvalidMinLength
+      sqids (sqidsOptions defaultSqidsOptions{ minLength = (-1) }) `shouldBe` Left SqidsInvalidMinLength
+      sqids (sqidsOptions defaultSqidsOptions{ minLength = len + 1 }) `shouldBe` Left SqidsInvalidMinLength

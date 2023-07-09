@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           sqids-haskell
-version:        0.0.0.0
+version:        0.1.0.0
 synopsis:       Sqids (pronounced "squids") is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
 description:    Please see the README on GitHub at <https://github.com/sqids/sqids-haskell#readme>
 category:       Web

@@ -18,6 +18,7 @@ module Web.Sqids.Internal
   , runSqids
   , sqids
   , filteredBlocklist
+  , rearrangeAlphabet
   , encodeNumbersWithAlphabet
   , decodeWithAlphabet
   , decodeStep

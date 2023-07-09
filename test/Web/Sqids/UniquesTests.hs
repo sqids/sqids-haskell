@@ -1,13 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Web.Sqids.UniquesTests where
+module Web.Sqids.UniquesTests (testUniques) where
 
-import Control.Monad (foldM, join, forM_)
+import Control.Monad (foldM, forM_)
 import Data.Either (fromRight)
 import Data.Function ((&))
 import Data.List (foldl')
-import Data.Set (Set)
-import Data.Text (Text)
-import Debug.Trace (traceShowM)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
 import Web.Sqids
 

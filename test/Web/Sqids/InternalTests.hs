@@ -1,12 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Web.Sqids.InternalTests where
+module Web.Sqids.InternalTests (testInternals) where
 
-import Control.Monad.State.Strict (get)
 import Data.List (unfoldr)
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids.Internal (toId, toNumber, shuffle, filteredBlocklist, sqidsOptions, sqids, runSqids, encode, decodeStep, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, filteredBlocklist, sqidsOptions, sqids, runSqids, encode, decodeStep, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsContext(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -43,8 +42,8 @@ testSqidsOptions =
     it "invalid min length" $
       sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
     it "valid options" $
-      sqids (sqidsOptions optionsValid >> get) `shouldBe`
-        Right (SqidsState (shuffle (alphabet optionsValid)) (minLength optionsValid) (blocklist optionsValid))
+      sqids (sqidsOptions optionsValid) `shouldBe`
+        Right (SqidsContext (shuffle (alphabet optionsValid)) (minLength optionsValid) (blocklist optionsValid))
   where
     optionsWithShortAlphabet = SqidsOptions
       { alphabet = "abc"
@@ -70,11 +69,11 @@ testSqidsOptions =
 testCuratedBlocklist :: SpecWith ()
 testCuratedBlocklist =
   withTestData "filteredBlocklist" $ \case
-    alphabet : bls : result : _ ->
-      let msg = alphabet <> " " <> bls
-          words = Text.splitOn "," bls
+    alph : bls : result : _ ->
+      let msg = alph <> " " <> bls
+          ws = Text.splitOn "," bls
           results = Text.splitOn "," result
-       in it msg (filteredBlocklist alphabet words `shouldBe` results)
+       in it msg (filteredBlocklist alph ws `shouldBe` results)
     _ ->
       error "testCuratedBlocklist: bad input"
 
@@ -89,18 +88,18 @@ testShuffle = do
 testToId :: SpecWith ()
 testToId = do
   withTestData "toId" $ \case
-    num : alphabet : result : _ ->
-      let msg = num <> " " <> alphabet
-       in it msg (toId (textRead num) alphabet `shouldBe` result)
+    num : alph : result : _ ->
+      let msg = num <> " " <> alph
+       in it msg (toId (textRead num) alph `shouldBe` result)
     _ ->
       error "testToId: bad input"
 
 testToNumber :: SpecWith ()
 testToNumber = do
   withTestData "toNumber" $ \case
-    sqid : alphabet : result : _ ->
-      let msg = sqid <> " " <> alphabet
-       in it msg (toNumber sqid alphabet `shouldBe` textRead result)
+    sqid : alph : result : _ ->
+      let msg = sqid <> " " <> alph
+       in it msg (toNumber sqid alph `shouldBe` textRead result)
     _ ->
       error "testToNumber: bad input"
 
@@ -109,8 +108,8 @@ testIsBlockedId = do
   withTestData "isBlockedId" $ \case
     bls : sqid : result : _ ->
       let msg = bls <> " " <> sqid
-          words = Text.splitOn "," bls
-       in it msg (isBlockedId words sqid == textRead result)
+          ws = Text.splitOn "," bls
+       in it msg (isBlockedId ws sqid == textRead result)
     _ ->
       error "testIsBlockedId: bad input"
 
@@ -123,10 +122,10 @@ testEncode = do
       sqids (encode [1,2,3,-1,4]) `shouldBe` Left SqidsNegativeNumberInInput
 
   withTestData "encode" $ \case
-    alphabet : numbers : result : _ ->
-      let msg = alphabet <> " " <> numbers 
+    alph : numbers : result : _ ->
+      let msg = alph <> " " <> numbers 
           nums = textRead <$> (Text.splitOn "," numbers)
-       in it msg (runSqids defaultSqidsOptions{ alphabet = alphabet } (encode nums) `shouldBe` Right result)
+       in it msg (runSqids defaultSqidsOptions{ alphabet = alph } (encode nums) `shouldBe` Right result)
     _ ->
       error "testEncode: bad input"
 
@@ -144,18 +143,18 @@ testEncodeWithMinLength = do
 testDecodeId :: SpecWith ()
 testDecodeId = do
   withTestData "decodeId" $ \case
-    sqid : alphabet : result : _ ->
-      let msg = sqid <> " " <> alphabet
-       in it msg (unfoldr decodeStep (sqid, alphabet) `shouldBe` textRead result)
+    sqid : alph : result : _ ->
+      let msg = sqid <> " " <> alph
+       in it msg (unfoldr decodeStep (sqid, alph) `shouldBe` textRead result)
     _ ->
       error "testDecodeId: bad input"
 
 testDecodeWithAlphabet :: SpecWith ()
 testDecodeWithAlphabet = do
   withTestData "decodeWithAlphabet" $ \case
-    alphabet : sqid : result : _ ->
-      let msg = alphabet <> " " <> sqid
-       in it msg (decodeWithAlphabet alphabet sqid `shouldBe` textRead result)
+    alph : sqid : result : _ ->
+      let msg = alph <> " " <> sqid
+       in it msg (decodeWithAlphabet alph sqid `shouldBe` textRead result)
     _ ->
       error "testDecodeWithAlphabet: bad input"
 

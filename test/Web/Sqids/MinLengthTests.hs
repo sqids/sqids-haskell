@@ -55,12 +55,12 @@ testMinLength = do
               , [maxBound :: Int]
               ]
 
-      forM_ ((,) <$> inputMinLengths <*> inputNumbers) $ \(minLength, numbers) -> do
-        let result = runSqids defaultSqidsOptions{ minLength = minLength } (encode numbers)
+      forM_ ((,) <$> inputMinLengths <*> inputNumbers) $ \(mlen, numbers) -> do
+        let result = runSqids defaultSqidsOptions{ minLength = mlen } (encode numbers)
         case result of
           Left _ -> error "error: min lengths"
           Right sqid -> do
-            sqid `shouldSatisfy` ((>= minLength) . Text.length)
+            sqid `shouldSatisfy` ((>= mlen) . Text.length)
             sqids (decode sqid) `shouldBe` Right numbers
 
     it "out-of-range invalid min length" $ do

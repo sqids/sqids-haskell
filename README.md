@@ -26,6 +26,16 @@ main =
             print sqid
 ```
 
+```
+main :: IO ()
+main =
+  case runSqids defaultSqidsOptions { minLength = 24 } (encode [1, 2, 3]) of
+    Left {} ->
+      print "Something went wrong."
+    Right sqid ->
+      print sqid
+```
+
 @todo
 
 ## API

@@ -103,7 +103,65 @@ makeIds = do
 
 @todo
 
+## Types
+
+### `SqidsOptions`
+
+@todo
+
+### `SqidsError`
+
+@todo
+
+### `SqidsT`
+
+@todo
+
+### `Sqids`
+
+@todo
+
+## Type classes
+
+### `MonadSqids`
+
+@todo
+
 ## API
+
+### `encode`
+
+@todo
+
+### `decode`
+
+@todo
+
+### `sqidsVersion`
+
+@todo
+
+### `defaultSqidsOptions`
+
+@todo
+
+### `sqidsOptions`
+
+@todo
+
+### `runSqidsT`
+
+@todo
+
+### `sqidsT`
+
+@todo
+
+### `runSqids`
+
+@todo
+
+### `sqids`
 
 @todo
 

@@ -50,7 +50,7 @@ import qualified Data.Text as Text
 
 -- | Sqids spec. version
 sqidsVersion :: String
-sqidsVersion = "?"
+sqidsVersion = "0.0.1"
 
 data SqidsOptions = SqidsOptions
   { alphabet  :: !Text

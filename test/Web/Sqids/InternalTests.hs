@@ -3,9 +3,10 @@
 module Web.Sqids.InternalTests where
 
 import Control.Monad.State.Strict (get)
+import Data.List (unfoldr)
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids.Internal (toId, toNumber, shuffle, filteredBlocklist, sqidsOptions, sqids, runSqids, encode, decodeId, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
+import Web.Sqids.Internal (toId, toNumber, shuffle, filteredBlocklist, sqidsOptions, sqids, runSqids, encode, decodeStep, decodeWithAlphabet, isBlockedId, defaultSqidsOptions, SqidsOptions(..), SqidsError(..), SqidsState(..))
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -145,7 +146,7 @@ testDecodeId = do
   withTestData "decodeId" $ \case
     sqid : alphabet : result : _ ->
       let msg = sqid <> " " <> alphabet
-       in it msg (decodeId sqid alphabet `shouldBe` textRead result)
+       in it msg (unfoldr decodeStep (sqid, alphabet) `shouldBe` textRead result)
     _ ->
       error "testDecodeId: bad input"
 

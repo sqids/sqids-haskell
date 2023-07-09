@@ -8,7 +8,7 @@ Sqids (pronounced "squids") is a small library that lets you generate YouTube-lo
 
 ### Installation
 
-Sqids is available on Hackage. Install it with:
+Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). Install it with:
 
 ```
 cabal install sqids
@@ -19,8 +19,6 @@ or using [Stack](https://docs.haskellstack.org/en/stable/):
 ```
 stack install sqids
 ```
-
-- Hackage page: https://hackage.haskell.org/package/sqids
 
 ### Usage
 

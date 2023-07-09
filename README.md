@@ -36,6 +36,21 @@ main =
       print sqid
 ```
 
+```haskell
+main :: IO ()
+main = do
+  let options = SqidsOptions
+        { alphabet  = "1234567890"
+        , minLength = 8
+        , blocklist = []
+        }
+  case runSqids options (encode [1, 2, 3]) of
+    Left {} ->
+      print "Something went wrong."
+    Right sqid ->
+      print sqid
+```
+
 @todo
 
 ## API

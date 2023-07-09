@@ -269,7 +269,7 @@ toNumber sqid alph = Text.foldl' mu 0 sqid
 
 isBlockedId :: [Text] -> Text -> Bool
 isBlockedId bls sqid =
-    any disallowed (wordsNoLongerThan (Text.length sqid) bls)
+  any disallowed (wordsNoLongerThan (Text.length sqid) bls)
   where
     lowercaseSqid = Text.map toLower sqid
     disallowed w

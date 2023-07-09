@@ -20,20 +20,16 @@ import Web.Sqids
 main :: IO ()
 main =
     case sqids (encode [1, 2, 3]) of
-        Left {} ->
-            print "Something went wrong."
-        Right sqid ->
-            print sqid
+        Left  {}   -> print "Something went wrong."
+        Right sqid -> print sqid
 ```
 
 ```haskell
 main :: IO ()
 main =
   case runSqids defaultSqidsOptions { minLength = 24 } (encode [1, 2, 3]) of
-    Left {} ->
-      print "Something went wrong."
-    Right sqid ->
-      print sqid
+    Left  {}   -> print "Something went wrong."
+    Right sqid -> print sqid
 ```
 
 ```haskell
@@ -45,10 +41,8 @@ main = do
         , blocklist = []
         }
   case runSqids options (encode [1, 2, 3]) of
-    Left {} ->
-      print "Something went wrong."
-    Right sqid ->
-      print sqid
+    Left  {}   -> print "Something went wrong."
+    Right sqid -> print sqid
 ```
 
 @todo

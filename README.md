@@ -69,11 +69,11 @@ import Web.Sqids
 
 main :: IO ()
 main = do
-  w <- execWriterT (sqidsT makeids)
+  w <- execWriterT (sqidsT makeIds)
   print w
 
-makeids :: SqidsT (WriterT [Text] IO) ()
-makeids = do
+makeIds :: SqidsT (WriterT [Text] IO) ()
+makeIds = do
   liftIO $ print "Generating IDs"
   forM_ [1 .. 50] $ \n -> do
     sqid <- encode [n, n, n, n]

@@ -88,9 +88,9 @@ type SqidsStack m = StateT SqidsState (ExceptT SqidsError m)
 
 class (Monad m) => MonadSqids m where
   -- | Encode a list of unsigned integers into an ID
-  encode       :: [Int] -> m Text
+  encode :: [Int] -> m Text
   -- | Decode an ID back into an array of unsigned integers
-  decode       :: Text -> m [Int]
+  decode :: Text -> m [Int]
 
 -- | Sqids constructor
 sqidsOptions
@@ -204,56 +204,6 @@ filteredBlocklist :: Text -> [Text] -> [Text]
 filteredBlocklist alph ws = (Text.map toLower) <$> filter isValid ws where
   isValid w = Text.length w >= 3 && Text.all (`Text.elem` alph) w
 
-xxx wlist minlen chars numbers partitioned sqid 
-  | minlen <= Text.length sqid || partitioned = 
-      sqid
-  | otherwise = 
-      encodeNumbersWithAlphabet wlist minlen chars (0 : numbers) True
-
---yyy :: Text -> Text
-yyy minlen chars bars numbers partitioned sqid 
-  | minlen <= Text.length sqid =
-      sqid
-  | otherwise = 
-        let extra = minlen - Text.length sqid
-         in Text.cons (Text.head sqid) (Text.take extra bars <> Text.tail sqid)
-
-zzz wlist minlen alph (n : ns) partitioned sqid 
-  | isBlockedId wlist sqid = 
-      if partitioned 
-          then encodeNumbersWithAlphabet wlist minlen alph (n + 1 : ns) True
-          else encodeNumbersWithAlphabet wlist minlen alph (0 : n : ns) True
-  | otherwise = 
-      sqid
-
-encodeNumbersWithAlphabet wlist minlen alph numbers partitioned =
-  case Text.unpack xx of
-    [] -> 
-      error "encodeNumbersWithAlphabet: implementation error"
-    prefix : partition : _ ->
-          -- TODO: Reader monad
-          let gork = xxx wlist minlen alph numbers partitioned zork 
-              (zork, tork) = foobaz prefix partition
-           in 
-                 zzz wlist minlen alph numbers partitioned (yyy minlen alph tork numbers partitioned gork)
-  where
-    (xx, newAlphabet) = Text.splitAt 2 (rearrangeAlphabet alph numbers)
-
-    foobaz prefix partition = 
-        foldl' run (Text.singleton prefix, newAlphabet) (zip numbers [0..])
-      where
-        run (r, chars) (n, i) =
-          let
-            barrier
-              | i == length numbers - 1 = 
-                  Text.empty
-              | otherwise = Text.singleton $
-                  if partitioned && i == 0 then partition else Text.last chars
-           in
-            ( r <> toId n (Text.init chars) <> barrier
-            , if i == length numbers - 1 then chars else shuffle chars
-            )
-
 -- Rearrange alphabet so that second half goes in front of the first half
 rearrangeAlphabet :: Text -> [Int] -> Text
 rearrangeAlphabet alph numbers =
@@ -341,3 +291,53 @@ isBlockedId blocklist sqid =
       | otherwise =
         -- Check if word appears anywhere in the string
         w `Text.isInfixOf` lowercaseSqid
+
+xxx wlist minlen chars numbers partitioned sqid 
+  | minlen <= Text.length sqid || partitioned = 
+      sqid
+  | otherwise = 
+      encodeNumbersWithAlphabet wlist minlen chars (0 : numbers) True
+
+--yyy :: Text -> Text
+yyy minlen chars bars numbers partitioned sqid 
+  | minlen <= Text.length sqid =
+      sqid
+  | otherwise = 
+        let extra = minlen - Text.length sqid
+         in Text.cons (Text.head sqid) (Text.take extra bars <> Text.tail sqid)
+
+zzz wlist minlen alph (n : ns) partitioned sqid 
+  | isBlockedId wlist sqid = 
+      if partitioned 
+          then encodeNumbersWithAlphabet wlist minlen alph (n + 1 : ns) True
+          else encodeNumbersWithAlphabet wlist minlen alph (0 : n : ns) True
+  | otherwise = 
+      sqid
+
+encodeNumbersWithAlphabet wlist minlen alph numbers partitioned =
+  case Text.unpack xx of
+    [] -> 
+      error "encodeNumbersWithAlphabet: implementation error"
+    prefix : partition : _ ->
+          -- TODO: Reader monad
+          let gork = xxx wlist minlen alph numbers partitioned zork 
+              (zork, tork) = foobaz prefix partition
+           in 
+                 zzz wlist minlen alph numbers partitioned (yyy minlen alph tork numbers partitioned gork)
+  where
+    (xx, newAlphabet) = Text.splitAt 2 (rearrangeAlphabet alph numbers)
+
+    foobaz prefix partition = 
+        foldl' run (Text.singleton prefix, newAlphabet) (zip numbers [0..])
+      where
+        run (r, chars) (n, i) =
+          let
+            barrier
+              | i == length numbers - 1 = 
+                  Text.empty
+              | otherwise = Text.singleton $
+                  if partitioned && i == 0 then partition else Text.last chars
+           in
+            ( r <> toId n (Text.init chars) <> barrier
+            , if i == length numbers - 1 then chars else shuffle chars
+            )

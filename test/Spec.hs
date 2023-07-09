@@ -21,5 +21,4 @@ main =
       testEncoding
       testMinLength
       testShuffle
---      testUniques
---      TODO
+      testUniques

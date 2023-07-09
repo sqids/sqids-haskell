@@ -26,7 +26,7 @@ main =
             print sqid
 ```
 
-```
+```haskell
 main :: IO ()
 main =
   case runSqids defaultSqidsOptions { minLength = 24 } (encode [1, 2, 3]) of

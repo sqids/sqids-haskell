@@ -31,9 +31,10 @@ module Web.Sqids.Internal
 import Control.Monad (when, (>=>))
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Except (MonadError, throwError)
+import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Identity (Identity, runIdentity)
-import Control.Monad.State.Strict (StateT)
 import Control.Monad.Reader (ReaderT, MonadReader, runReaderT, asks, local)
+import Control.Monad.State.Strict (StateT)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Cont (ContT)
 import Control.Monad.Trans.Maybe (MaybeT)
@@ -126,6 +127,7 @@ newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
     , Monad
     , MonadReader SqidsContext
     , MonadError SqidsError
+    , MonadIO
     )
 
 instance MonadTrans SqidsT where

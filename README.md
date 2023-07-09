@@ -127,7 +127,7 @@ makeIds = do
 
 @todo
 
-## API
+## Functions
 
 ### `encode`
 
@@ -155,7 +155,7 @@ makeIds = do
 
 ### `sqidsT`
 
-@todo
+This is a short form for `runSqidsT defaultSqidsOptions`.
 
 ### `runSqids`
 
@@ -163,7 +163,7 @@ makeIds = do
 
 ### `sqids`
 
-@todo
+This is a short form for `runSqids defaultSqidsOptions`.
 
 ## Examples
 

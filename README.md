@@ -28,6 +28,23 @@ main =
 "8QRLaD"
 ```
 
+```
+{-# LANGUAGE OverloadedStrings #-}
+module Main where
+
+import Web.Sqids
+
+main :: IO ()
+main =
+  case sqids (decode "8QRLaD") of
+    Left  {}   -> print "Something went wrong."
+    Right nums -> print nums
+```
+
+```
+[1,2,3]
+```
+
 ```haskell
 main =
   case runSqids defaultSqidsOptions { minLength = 24 } (encode [1, 2, 3]) of

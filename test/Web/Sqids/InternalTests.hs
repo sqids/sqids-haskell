@@ -72,9 +72,9 @@ testCuratedBlocklist =
   withTestData "filteredBlocklist" $ \case
     alphabet : bls : result : _ ->
       let msg = alphabet <> " " <> bls
-          ws = Text.splitOn "," bls
+          words = Text.splitOn "," bls
           results = Text.splitOn "," result
-       in it msg (filteredBlocklist alphabet ws `shouldBe` results)
+       in it msg (filteredBlocklist alphabet words `shouldBe` results)
     _ ->
       error "testCuratedBlocklist: bad input"
 
@@ -109,8 +109,8 @@ testIsBlockedId = do
   withTestData "isBlockedId" $ \case
     bls : sqid : result : _ ->
       let msg = bls <> " " <> sqid
-          bls = Text.splitOn "," bls
-       in it msg (isBlockedId bls sqid == textRead result)
+          words = Text.splitOn "," bls
+       in it msg (isBlockedId words sqid == textRead result)
     _ ->
       error "testIsBlockedId: bad input"
 

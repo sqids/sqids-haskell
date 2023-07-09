@@ -28,7 +28,7 @@ main =
 "8QRLaD"
 ```
 
-```
+```haskell
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 

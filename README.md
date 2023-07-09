@@ -43,6 +43,10 @@ main = do
     Right sqid -> print sqid
 ```
 
+```
+"31764540"
+```
+
 #### Monad transformer
 
 ```haskell

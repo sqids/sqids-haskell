@@ -12,6 +12,20 @@ Sqids (pronounced "squids") is a small library that lets you generate YouTube-lo
 
 ### Usage
 
+```haskell
+module Main where
+
+import Web.Sqids
+
+main :: IO ()
+main =
+    case sqids (encode [1, 2, 3]) of
+        Left {} ->
+            print "Something went wrong."
+        Right sqid ->
+            print sqid
+```
+
 @todo
 
 ## API

@@ -94,9 +94,9 @@ class (Monad m) => MonadSqids m where
 
 -- | Sqids constructor
 sqidsOptions
-  :: (MonadSqids m, MonadReader SqidsContext m, MonadError SqidsError m)
+  :: (MonadSqids m, MonadError SqidsError m)
   => SqidsOptions
-  -> m ()
+  -> m SqidsContext
 sqidsOptions SqidsOptions{..} = do
 
   let alphabetLetterCount = letterCount alphabet
@@ -113,7 +113,11 @@ sqidsOptions SqidsOptions{..} = do
   when (minLength < 0 || minLength > alphabetLetterCount) $
     throwError SqidsInvalidMinLength
 
-  local (const $ SqidsContext (shuffle alphabet) minLength (filteredBlocklist alphabet blocklist)) (pure ())
+  pure $ SqidsContext
+    { sqidsAlphabet  = shuffle alphabet
+    , sqidsMinLength = minLength
+    , sqidsBlocklist = filteredBlocklist alphabet blocklist
+    }
 
 newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
   deriving
@@ -154,7 +158,7 @@ runSqidsT :: (Monad m) => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
 runSqidsT options value =
   runExceptT (runReaderT (unwrapSqidsT withOptions) emptySqidsContext)
   where
-    withOptions = sqidsOptions options >> value
+    withOptions = sqidsOptions options >>= (`local` value) . const
 
 sqidsT :: (Monad m) => SqidsT m a -> m (Either SqidsError a)
 sqidsT = runSqidsT defaultSqidsOptions

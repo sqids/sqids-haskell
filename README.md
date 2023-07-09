@@ -6,6 +6,16 @@ Sqids (pronounced "squids") is a small library that lets you generate YouTube-lo
 
 ## Getting started
 
+### Installation
+
+@todo
+
+### Usage
+
+@todo
+
+## API
+
 @todo
 
 ## Examples

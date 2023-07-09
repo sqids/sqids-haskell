@@ -5,8 +5,8 @@ module Web.Sqids.Internal
   ( sqidsVersion
   , SqidsOptions(..)
   , SqidsError(..)
-  , SqidsState(..)
-  , emptySqidsState
+  , SqidsContext(..)
+  , emptySqidsContext
   , defaultSqidsOptions
   , SqidsStack
   , MonadSqids(..)
@@ -32,8 +32,8 @@ import Control.Monad (when, (>=>))
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Identity (Identity, runIdentity)
-import Control.Monad.Reader (ReaderT)
-import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put, gets)
+import Control.Monad.State.Strict (StateT)
+import Control.Monad.Reader (ReaderT, MonadReader, runReaderT, asks, local)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Cont (ContT)
 import Control.Monad.Trans.Maybe (MaybeT)
@@ -67,15 +67,15 @@ defaultSqidsOptions = SqidsOptions
   , blocklist = defaultBlocklist
   }
 
-data SqidsState = SqidsState
+data SqidsContext = SqidsContext
   { sqidsAlphabet  :: !Text
   , sqidsMinLength :: !Int
   , sqidsBlocklist :: ![Text]
   } deriving (Show, Eq, Ord)
 
-{-# INLINE emptySqidsState #-}
-emptySqidsState :: SqidsState
-emptySqidsState = SqidsState Text.empty 0 []
+{-# INLINE emptySqidsContext #-}
+emptySqidsContext :: SqidsContext
+emptySqidsContext = SqidsContext Text.empty 0 []
 
 data SqidsError
   = SqidsAlphabetTooShort
@@ -84,7 +84,7 @@ data SqidsError
   | SqidsNegativeNumberInInput
   deriving (Show, Read, Eq, Ord)
 
-type SqidsStack m = StateT SqidsState (ExceptT SqidsError m)
+type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
 
 class (Monad m) => MonadSqids m where
   -- | Encode a list of unsigned integers into an ID
@@ -94,7 +94,7 @@ class (Monad m) => MonadSqids m where
 
 -- | Sqids constructor
 sqidsOptions
-  :: (MonadSqids m, MonadState SqidsState m, MonadError SqidsError m)
+  :: (MonadSqids m, MonadReader SqidsContext m, MonadError SqidsError m)
   => SqidsOptions
   -> m ()
 sqidsOptions SqidsOptions{..} = do
@@ -113,14 +113,14 @@ sqidsOptions SqidsOptions{..} = do
   when (minLength < 0 || minLength > alphabetLetterCount) $
     throwError SqidsInvalidMinLength
 
-  put $ SqidsState (shuffle alphabet) minLength (filteredBlocklist alphabet blocklist)
+  local (const $ SqidsContext (shuffle alphabet) minLength (filteredBlocklist alphabet blocklist)) (pure ())
 
 newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
   deriving
     ( Functor
     , Applicative
     , Monad
-    , MonadState SqidsState
+    , MonadReader SqidsContext
     , MonadError SqidsError
     )
 
@@ -138,21 +138,21 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | otherwise =
         encodeNumbers numbers False
 
-  decode sqid = decodeWithAlphabet <$> gets sqidsAlphabet <*> pure sqid
+  decode sqid = decodeWithAlphabet <$> asks sqidsAlphabet <*> pure sqid
 
 newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
   deriving
     ( Functor
     , Applicative
     , Monad
-    , MonadState SqidsState
+    , MonadReader SqidsContext
     , MonadError SqidsError
     , MonadSqids
     )
 
 runSqidsT :: (Monad m) => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
 runSqidsT options value =
-  runExceptT (evalStateT (unwrapSqidsT withOptions) emptySqidsState)
+  runExceptT (runReaderT (unwrapSqidsT withOptions) emptySqidsContext)
   where
     withOptions = sqidsOptions options >> value
 
@@ -291,9 +291,9 @@ rearrangeAlphabet alph numbers =
        in ord currentChar + i + a
 
 encodeNumbers ::
-  (MonadSqids m, MonadState SqidsState m) => [Int] -> Bool -> m Text
+  (MonadSqids m, MonadReader SqidsContext m) => [Int] -> Bool -> m Text
 encodeNumbers numbers partitioned = do
-  alph <- gets sqidsAlphabet
+  alph <- asks sqidsAlphabet
   let (left, right) = Text.splitAt 2 (rearrangeAlphabet alph numbers)
   case Text.unpack left of
     prefix : partition : _ -> do
@@ -312,7 +312,7 @@ encodeNumbers numbers partitioned = do
       error "encodeNumbers: implementation error"
   where
     makeMinLength chars sqid = do
-      minl <- gets sqidsMinLength
+      minl <- asks sqidsMinLength
       sqid' <-
         if minl <= Text.length sqid || partitioned
           then pure sqid
@@ -324,7 +324,7 @@ encodeNumbers numbers partitioned = do
                 in Text.cons (Text.head sqid') (Text.take extra chars <> Text.tail sqid')
 
     checkAgainstBlocklist nums sqid = do
-      bls <- gets sqidsBlocklist
+      bls <- asks sqidsBlocklist
       if isBlockedId bls sqid then
         case nums of
           n : ns ->

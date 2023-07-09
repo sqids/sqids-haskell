@@ -25,7 +25,6 @@ main =
 ```
 
 ```haskell
-main :: IO ()
 main =
   case runSqids defaultSqidsOptions { minLength = 24 } (encode [1, 2, 3]) of
     Left  {}   -> print "Something went wrong."
@@ -33,7 +32,6 @@ main =
 ```
 
 ```haskell
-main :: IO ()
 main = do
   let options = SqidsOptions
         { alphabet  = "1234567890"

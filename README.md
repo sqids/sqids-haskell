@@ -19,9 +19,9 @@ import Web.Sqids
 
 main :: IO ()
 main =
-    case sqids (encode [1, 2, 3]) of
-        Left  {}   -> print "Something went wrong."
-        Right sqid -> print sqid
+  case sqids (encode [1, 2, 3]) of
+    Left  {}   -> print "Something went wrong."
+    Right sqid -> print sqid
 ```
 
 ```haskell

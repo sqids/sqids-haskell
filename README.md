@@ -43,6 +43,31 @@ main = do
     Right sqid -> print sqid
 ```
 
+#### Monad transformer
+
+```haskell
+module Main where
+
+import Control.Monad (forM_)
+import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Writer (WriterT, execWriterT, tell)
+import Data.Text (Text)
+import Web.Sqids
+
+main :: IO ()
+main = do
+  w <- execWriterT (sqidsT makeids)
+  print w
+
+makeids :: SqidsT (WriterT [Text] IO) ()
+makeids = do
+  liftIO $ print "Generating IDs"
+  forM_ [1 .. 50] $ \n -> do
+    sqid <- encode [n, n, n, n]
+    lift (tell [sqid])
+```
+
 @todo
 
 ## API

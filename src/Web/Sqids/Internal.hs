@@ -91,9 +91,6 @@ class (Monad m) => MonadSqids m where
   encode       :: [Int] -> m Text
   -- | Decode an ID back into an array of unsigned integers
   decode       :: Text -> m [Int]
---  getAlphabet  :: m Text
---  getMinLength :: m Int
---  getBlocklist :: m [Text]
 
 -- | Sqids constructor
 sqidsOptions
@@ -170,53 +167,32 @@ sqids :: Sqids a -> Either SqidsError a
 sqids = runSqids defaultSqidsOptions
 
 instance (MonadSqids m) => MonadSqids (StateT s m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 instance (MonadSqids m) => MonadSqids (ExceptT e m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 instance (MonadSqids m) => MonadSqids (ReaderT r m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 instance (MonadSqids m, Monoid w) => MonadSqids (WriterT w m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 instance (MonadSqids m) => MonadSqids (MaybeT m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 instance (MonadSqids m) => MonadSqids (ContT r m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 instance (MonadSqids m) => MonadSqids (SelectT r m) where
-  encode       = lift . encode
-  decode       = lift . decode
---  getAlphabet  = lift getAlphabet
---  getMinLength = lift getMinLength
---  getBlocklist = lift getBlocklist
+  encode = lift . encode
+  decode = lift . decode
 
 -- Clean up blocklist:
 --

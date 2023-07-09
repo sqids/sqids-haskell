@@ -1,8 +1,9 @@
 name:                sqids-haskell
 version:             0.1.0.0
 category:            Web
-synopsis:            Sqids (pronounced "squids") is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
+synopsis:            Sqids is a small library that lets you generate YouTube-looking IDs from numbers. 
 description:         Please see the README on GitHub at <https://github.com/sqids/sqids-haskell#readme>
+homepage:            https://sqids.org/
 github:              "github.com/sqids/sqids-haskell"
 license:             MIT
 license-file:        LICENSE

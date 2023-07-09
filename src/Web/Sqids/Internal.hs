@@ -19,7 +19,7 @@ module Web.Sqids.Internal
   , sqids
   , filteredBlocklist
   , rearrangeAlphabet
-  , encodeNumbersWithAlphabet
+  , encodeNumbers
   , decodeWithAlphabet
   , decodeStep
   , shuffle
@@ -28,7 +28,7 @@ module Web.Sqids.Internal
   , isBlockedId
   ) where
 
-import Control.Monad (when)
+import Control.Monad (when, (>=>))
 import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Identity (Identity, runIdentity)
@@ -68,8 +68,8 @@ defaultSqidsOptions = SqidsOptions
   , blocklist = defaultBlocklist
   }
 
-data SqidsState = SqidsState 
-  { sqidsAlphabet  :: !Text 
+data SqidsState = SqidsState
+  { sqidsAlphabet  :: !Text
   , sqidsMinLength :: !Int
   , sqidsBlocklist :: ![Text]
   } deriving (Show, Eq, Ord)
@@ -136,9 +136,8 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | any (< 0) numbers =
         -- Don't allow negative integers
         throwError SqidsNegativeNumberInInput
-    | otherwise = do
-        (SqidsState chars minLength wlist) <- get
-        pure $ encodeNumbersWithAlphabet wlist minLength chars numbers False
+    | otherwise =
+        encodeNumbers numbers False
 
   decode sqid = decodeWithAlphabet <$> gets sqidsAlphabet <*> pure sqid
 
@@ -205,17 +204,6 @@ filteredBlocklist :: Text -> [Text] -> [Text]
 filteredBlocklist alph ws = (Text.map toLower) <$> filter isValid ws where
   isValid w = Text.length w >= 3 && Text.all (`Text.elem` alph) w
 
--- Rearrange alphabet so that second half goes in front of the first half
-rearrangeAlphabet :: Text -> [Int] -> Text
-rearrangeAlphabet alph numbers =
-  Text.drop offset alph <> Text.take offset alph
-  where
-    len = Text.length alph
-    offset = foldl' mu (length numbers) (zip numbers [0..]) `mod` len
-    mu a (v, i) =
-      let currentChar = Text.index alph (v `mod` len)
-       in ord currentChar + i + a
-
 decodeStep :: (Text, Text) -> Maybe (Int, (Text, Text))
 decodeStep (sqid, alph)
   | Text.null sqid = Nothing
@@ -241,7 +229,7 @@ decodeWithAlphabet alph sqid
     (prefix, next) = unsafeUncons sqid
     (partition, chars) =
       unsafeUncons (Text.drop (offset + 1) alph <> Text.take offset alph)
-    initial = 
+    initial =
       case Text.findIndex (== partition) next of
         Just n | n > 0 && n < Text.length next - 1 ->
           (Text.drop (n + 1) next, shuffle chars)
@@ -249,11 +237,10 @@ decodeWithAlphabet alph sqid
           (next, chars)
 
 shuffle :: Text -> Text
-shuffle alph = foldl' mu alph ixs
+shuffle alph =
+  foldl' mu alph [ (i, j) | i <- [ 0 .. len - 2 ], let j = len - i - 1 ]
   where
     len = Text.length alph
-    ixs = [ (i, j) | i <- [ 0 .. len - 2 ], let j = len - i - 1 ]
-    --
     mu chars (i, j) =
       let r = (i * j + ordAt i + ordAt j) `mod` len
           ordAt = ord . (chars `Text.index`)
@@ -278,8 +265,8 @@ toNumber sqid alph = Text.foldl' mu 0 sqid
         _ -> error "toNumber: bad input"
 
 isBlockedId :: [Text] -> Text -> Bool
-isBlockedId blocklist sqid =
-    any disallowed (wordsNoLongerThan (Text.length sqid) blocklist)
+isBlockedId bls sqid =
+    any disallowed (wordsNoLongerThan (Text.length sqid) bls)
   where
     lowercaseSqid = Text.map toLower sqid
     disallowed w
@@ -293,52 +280,57 @@ isBlockedId blocklist sqid =
         -- Check if word appears anywhere in the string
         w `Text.isInfixOf` lowercaseSqid
 
-xxx wlist minlen chars numbers partitioned sqid 
-  | minlen <= Text.length sqid || partitioned = 
-      sqid
-  | otherwise = 
-      encodeNumbersWithAlphabet wlist minlen chars (0 : numbers) True
-
---yyy :: Text -> Text
-yyy minlen chars bars numbers partitioned sqid 
-  | minlen <= Text.length sqid =
-      sqid
-  | otherwise = 
-        let extra = minlen - Text.length sqid
-         in Text.cons (Text.head sqid) (Text.take extra bars <> Text.tail sqid)
-
-zzz wlist minlen alph (n : ns) partitioned sqid 
-  | isBlockedId wlist sqid = 
-      if partitioned 
-          then encodeNumbersWithAlphabet wlist minlen alph (n + 1 : ns) True
-          else encodeNumbersWithAlphabet wlist minlen alph (0 : n : ns) True
-  | otherwise = 
-      sqid
-
-encodeNumbersWithAlphabet wlist minlen alph numbers partitioned =
-  case Text.unpack xx of
-    [] -> 
-      error "encodeNumbersWithAlphabet: implementation error"
-    prefix : partition : _ ->
-          -- TODO: Reader monad
-          let gork = xxx wlist minlen alph numbers partitioned zork 
-              (zork, tork) = foobaz prefix partition
-           in 
-                 zzz wlist minlen alph numbers partitioned (yyy minlen alph tork numbers partitioned gork)
+-- Rearrange alphabet so that second half goes in front of the first half
+rearrangeAlphabet :: Text -> [Int] -> Text
+rearrangeAlphabet alph numbers =
+  Text.drop offset alph <> Text.take offset alph
   where
-    (xx, newAlphabet) = Text.splitAt 2 (rearrangeAlphabet alph numbers)
+    len = Text.length alph
+    offset = foldl' mu (length numbers) (zip numbers [0..]) `mod` len
+    mu a (v, i) =
+      let currentChar = Text.index alph (v `mod` len)
+       in ord currentChar + i + a
 
-    foobaz prefix partition = 
-        foldl' run (Text.singleton prefix, newAlphabet) (zip numbers [0..])
-      where
-        run (r, chars) (n, i) =
-          let
-            barrier
-              | i == length numbers - 1 = 
-                  Text.empty
-              | otherwise = Text.singleton $
-                  if partitioned && i == 0 then partition else Text.last chars
-           in
-            ( r <> toId n (Text.init chars) <> barrier
-            , if i == length numbers - 1 then chars else shuffle chars
-            )
+encodeNumbers ::
+  (MonadSqids m, MonadState SqidsState m) => [Int] -> Bool -> m Text
+encodeNumbers numbers partitioned = do
+  alph <- gets sqidsAlphabet
+  let (left, right) = Text.splitAt 2 (rearrangeAlphabet alph numbers)
+  case Text.unpack left of
+    prefix : partition : _ -> do
+      let run (r, chars) (n, i)
+            | i == length numbers - 1 =
+                (sqid, chars)
+            | otherwise =
+                (sqid <> Text.singleton delim, shuffle chars)
+            where
+              delim = if partitioned && i == 0 then partition else Text.last chars
+              sqid = r <> toId n (Text.init chars)
+      let (sqid, chars) =
+            foldl' run (Text.singleton prefix, right) (zip numbers [0..])
+      (makeMinLength chars >=> checkAgainstBlocklist numbers) sqid
+    [] ->
+      error "encodeNumbers: implementation error"
+  where
+    makeMinLength chars sqid = do
+      minl <- gets sqidsMinLength
+      sqid' <-
+        if minl <= Text.length sqid || partitioned
+          then pure sqid
+          else encodeNumbers (0 : numbers) True
+      pure $
+        if minl <= Text.length sqid'
+          then sqid'
+          else let extra = minl - Text.length sqid
+                in Text.cons (Text.head sqid') (Text.take extra chars <> Text.tail sqid')
+
+    checkAgainstBlocklist numbers sqid = do
+      bls <- gets sqidsBlocklist
+      if isBlockedId bls sqid then
+        case numbers of
+          n : ns ->
+            encodeNumbers (if partitioned then n + 1 : ns else 0 : n : ns) True
+          _ ->
+            error "encodeNumbers: implementation error"
+        else
+          pure sqid

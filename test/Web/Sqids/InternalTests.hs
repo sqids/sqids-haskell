@@ -70,9 +70,9 @@ testSqidsOptions =
 testCuratedBlocklist :: SpecWith ()
 testCuratedBlocklist =
   withTestData "filteredBlocklist" $ \case
-    alphabet : wlist : result : _ ->
-      let msg = alphabet <> " " <> wlist
-          ws = Text.splitOn "," wlist
+    alphabet : bls : result : _ ->
+      let msg = alphabet <> " " <> bls
+          ws = Text.splitOn "," bls
           results = Text.splitOn "," result
        in it msg (filteredBlocklist alphabet ws `shouldBe` results)
     _ ->
@@ -107,10 +107,10 @@ testToNumber = do
 testIsBlockedId :: SpecWith ()
 testIsBlockedId = do
   withTestData "isBlockedId" $ \case
-    blocklist : sqid : result : _ ->
-      let msg = blocklist <> " " <> sqid
-          wlist = Text.splitOn "," blocklist
-       in it msg (isBlockedId wlist sqid == textRead result)
+    bls : sqid : result : _ ->
+      let msg = bls <> " " <> sqid
+          bls = Text.splitOn "," bls
+       in it msg (isBlockedId bls sqid == textRead result)
     _ ->
       error "testIsBlockedId: bad input"
 

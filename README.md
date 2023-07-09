@@ -47,7 +47,7 @@ main =
 
 ```haskell
 main =
-  case runSqids defaultSqidsOptions { minLength = 24 } (encode [1, 2, 3]) of
+  case runSqids defaultSqidsOptions{ minLength = 24 } (encode [1, 2, 3]) of
     Left  {}   -> print "Something went wrong."
     Right sqid -> print sqid
 ```

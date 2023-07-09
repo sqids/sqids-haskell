@@ -33,16 +33,15 @@ import Control.Monad.Except (ExceptT, runExceptT)
 import Control.Monad.Except (MonadError, throwError)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader (ReaderT)
-import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put, get, gets)
+import Control.Monad.State.Strict (StateT, MonadState, evalStateT, put, gets)
 import Control.Monad.Trans.Class (MonadTrans, lift)
 import Control.Monad.Trans.Cont (ContT)
 import Control.Monad.Trans.Maybe (MaybeT)
 import Control.Monad.Trans.Select (SelectT)
 import Control.Monad.Writer (WriterT)
 import Data.Char (ord, toLower, isDigit)
-import Data.List (foldl', unfoldr, elemIndex, intersect, nub, null, intercalate)
+import Data.List (foldl', unfoldr)
 import Data.Text (Text)
-import Debug.Trace (traceShow, traceShowM)
 import Web.Sqids.Blocklist (defaultBlocklist)
 import Web.Sqids.Utils.Internal (letterCount, swapChars, wordsNoLongerThan, unsafeIndex, unsafeUncons)
 
@@ -309,7 +308,7 @@ encodeNumbers numbers partitioned = do
       let (sqid, chars) =
             foldl' run (Text.singleton prefix, right) (zip numbers [0..])
       (makeMinLength chars >=> checkAgainstBlocklist numbers) sqid
-    [] ->
+    _ ->
       error "encodeNumbers: implementation error"
   where
     makeMinLength chars sqid = do
@@ -324,10 +323,10 @@ encodeNumbers numbers partitioned = do
           else let extra = minl - Text.length sqid
                 in Text.cons (Text.head sqid') (Text.take extra chars <> Text.tail sqid')
 
-    checkAgainstBlocklist numbers sqid = do
+    checkAgainstBlocklist nums sqid = do
       bls <- gets sqidsBlocklist
       if isBlockedId bls sqid then
-        case numbers of
+        case nums of
           n : ns ->
             encodeNumbers (if partitioned then n + 1 : ns else 0 : n : ns) True
           _ ->

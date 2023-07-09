@@ -15,22 +15,31 @@ import qualified Data.Set as Set
 import qualified Data.Text as Text
 
 upper :: Int
---upper = 1000000
-upper = 100
+upper = 1000000
+
+uniqueWithConfig :: SqidsOptions -> Int -> Int -> SpecWith ()
+uniqueWithConfig options offset n = do
+  let range = [offset .. offset + upper - 1]
+      ids = fromRight [] (runSqids options $ foldM f [] range)
+  it "count" $
+    Set.size (foldl' (flip Set.insert) mempty ids) `shouldBe` upper
+  it "decode" $
+    forM_ (zip (reverse ids) [offset ..]) $ \(sqid, i) ->
+      (runSqids options $ decode sqid) `shouldBe` Right (replicate n i)
+  where
+    f a i = (: a) <$> encode (replicate n i)
 
 testUniques :: SpecWith ()
 testUniques = do
   describe "uniques" $ do
-    let len = Text.length (defaultSqidsOptions & alphabet)
-        options = defaultSqidsOptions { minLength = len }
-        f a i = (: a) <$> encode [i] 
-        ids = fromRight [] (runSqids options $ foldM f [] [0 .. upper - 1])
+    describe "with padding" $
+      uniqueWithConfig defaultSqidsOptions { minLength = Text.length (defaultSqidsOptions & alphabet) } 0 1
 
-    it "uniques, with padding" $ do
-      Set.size (foldl' (flip Set.insert) mempty ids) `shouldBe` upper
+    describe "low ranges" $
+      uniqueWithConfig defaultSqidsOptions 0 1
 
-    it "...cont" $ do
-      forM_ (zip (reverse ids) [0 ..]) $ \(sqid, i) ->
-        (runSqids options $ decode sqid) `shouldBe` Right [i]
+    describe "hight ranges" $
+      uniqueWithConfig defaultSqidsOptions 100000000 1
 
--- TODO
+    describe "multi" $
+      uniqueWithConfig defaultSqidsOptions 0 5

@@ -4,7 +4,7 @@ module Web.Sqids.Blocklist (defaultBlocklist) where
 import Data.Text (Text)
 
 defaultBlocklist :: [Text]
-defaultBlocklist = 
+defaultBlocklist =
   [ "0rgasm"
   , "1d10t"
   , "1d1ot"

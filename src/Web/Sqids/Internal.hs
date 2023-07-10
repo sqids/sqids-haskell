@@ -83,6 +83,7 @@ data SqidsError
   | SqidsAlphabetRepeatedCharacters
   | SqidsInvalidMinLength
   | SqidsNegativeNumberInInput
+  | SqidsOutOfRangeError
   deriving (Show, Read, Eq, Ord)
 
 type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
@@ -90,11 +91,11 @@ type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
 class (Monad m) => MonadSqids m where
   -- | Encode a list of integers into an ID
   encode :: [Int]    -- ^ A list of non-negative integers to encode
-         -> m Text   -- ^ The generated ID
+         -> m Text   -- ^ Returns the generated ID
 
   -- | Decode an ID back into a list of integers
   decode :: Text     -- ^ The encoded ID
-         -> m [Int]  -- ^ A list of integers
+         -> m [Int]  -- ^ Returns a list of integers
 
 -- | Sqids constructor
 sqidsOptions
@@ -300,7 +301,7 @@ rearrangeAlphabet alph numbers =
        in ord currentChar + i + a
 
 encodeNumbers ::
-  (MonadSqids m, MonadReader SqidsContext m) => [Int] -> Bool -> m Text
+  (MonadSqids m, MonadError SqidsError m, MonadReader SqidsContext m) => [Int] -> Bool -> m Text
 encodeNumbers numbers partitioned = do
   alph <- asks sqidsAlphabet
   let (left, right) = Text.splitAt 2 (rearrangeAlphabet alph numbers)
@@ -336,8 +337,12 @@ encodeNumbers numbers partitioned = do
       bls <- asks sqidsBlocklist
       if isBlockedId bls sqid then
         case nums of
+          n : ns | partitioned ->
+            if n == maxBound
+              then throwError SqidsOutOfRangeError
+              else encodeNumbers (n + 1 : ns) True
           n : ns ->
-            encodeNumbers (if partitioned then n + 1 : ns else 0 : n : ns) True
+            encodeNumbers (0 : n : ns) True
           _ ->
             error "encodeNumbers: implementation error"
         else

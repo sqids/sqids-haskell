@@ -166,12 +166,14 @@ runSqidsT options value =
   where
     withOptions = sqidsOptions options >>= (`local` value) . const
 
+-- | This is a short form for `runSqidsT defaultSqidsOptions`.
 sqidsT :: (Monad m) => SqidsT m a -> m (Either SqidsError a)
 sqidsT = runSqidsT defaultSqidsOptions
 
 runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
 runSqids options = runIdentity . runSqidsT options . unwrapSqids
 
+-- | This is a short form for `runSqids defaultSqidsOptions`.
 sqids :: Sqids a -> Either SqidsError a
 sqids = runSqids defaultSqidsOptions
 

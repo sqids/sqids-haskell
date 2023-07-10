@@ -1,26 +1,29 @@
 # [Sqids Haskell](https://sqids.org/haskell)
 
 [![Haskell CI](https://github.com/sqids/sqids-haskell/actions/workflows/haskell.yml/badge.svg)](https://github.com/sqids/sqids-haskell/actions/workflows/haskell.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Language](https://img.shields.io/badge/language-Haskell-orange.svg)](https://www.haskell.org/)
+[![Hackage](https://img.shields.io/hackage/v/sqids.svg)](https://hackage.haskell.org/package/sqids)
 
 Sqids (pronounced "squids") is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
 
 ## Getting started
 
-### Installation
+### 💾 Installation
 
-Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). Install it with:
+Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). To install this package, run:
 
 ```
 cabal install sqids
 ```
 
-or using [Stack](https://docs.haskellstack.org/en/stable/):
+Or using [Stack](https://docs.haskellstack.org/en/stable/):
 
 ```
 stack install sqids
 ```
 
-### Usage
+### 🛠️ Usage
 
 ```haskell
 module Main where
@@ -55,16 +58,16 @@ main =
 [1,2,3]
 ```
 
-Note that `decode` takes a `Text` value as input. Without the `OverloadedStrings` 
+Note that `decode` takes a `Text` value as input. Without the `OverloadedStrings`
 extension, the `"8QRLaD"` string literal in the above example would need to be
-explicitly converted, using the `pack` function from `Data.Text`.  
+explicitly converted, using the `pack` function from `Data.Text`.
 
 ```haskell
 import Data.Text (pack)
 ```
 
 ```haskell
-decode (pack "8QRLaD"))
+decode (pack "8QRLaD")
 ```
 
 ```haskell

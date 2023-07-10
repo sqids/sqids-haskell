@@ -3,7 +3,7 @@
 --   URL-safe ID generation and decoding back into numbers for quicker database
 --   lookups.
 --
--- For more info, see the official Sqids home page: <https://sqids.org>
+-- For more info, see the official Sqids home page: <https://sqids.org>.
 module Web.Sqids
   ( sqidsVersion
   , defaultSqidsOptions

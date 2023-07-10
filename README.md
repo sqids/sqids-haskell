@@ -45,6 +45,18 @@ main =
 [1,2,3]
 ```
 
+Note that `decode` takes a `Text` value as input. Without the `OverloadedStrings` 
+extension, the `"8QRLaD"` string literal in the above example would need to be
+explicitly converted, using the `pack` function from `Data.Text`.  
+
+```haskell
+import Data.Text (pack)
+```
+
+```haskell
+decode (pack "8QRLaD"))
+```
+
 ```haskell
 main =
   case runSqids defaultSqidsOptions{ minLength = 24 } (encode [1, 2, 3]) of

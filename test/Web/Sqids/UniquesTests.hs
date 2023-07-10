@@ -35,7 +35,7 @@ testUniques = do
     describe "low ranges" $
       uniqueWithConfig defaultSqidsOptions 0 1
 
-    describe "hight ranges" $
+    describe "high ranges" $
       uniqueWithConfig defaultSqidsOptions 100000000 1
 
     describe "multi" $

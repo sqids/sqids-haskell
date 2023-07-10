@@ -89,9 +89,11 @@ type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
 
 class (Monad m) => MonadSqids m where
   -- | Encode a list of unsigned integers into an ID
-  encode :: [Int] -> m Text
+  encode :: [Int]    -- ^ A list of non-negative integers to encode
+         -> m Text   -- ^ The generated ID
   -- | Decode an ID back into a list of unsigned integers
-  decode :: Text -> m [Int]
+  decode :: Text     -- ^ The encoded ID
+         -> m [Int]  -- ^ A list of integers
 
 -- | Sqids constructor
 sqidsOptions

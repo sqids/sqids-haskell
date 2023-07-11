@@ -7,9 +7,9 @@
 
 Sqids (pronounced "squids") is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
 
-## Getting started
+## 🏃Getting started
 
-### 💾 Installation
+### Installation
 
 Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). To install this package, run:
 
@@ -23,7 +23,9 @@ Or using [Stack](https://docs.haskellstack.org/en/stable/):
 stack install sqids
 ```
 
-### 🛠️ Usage
+### Usage
+
+#### Encoding
 
 ```haskell
 module Main where
@@ -37,9 +39,13 @@ main =
     Right sqid -> print sqid
 ```
 
+The output of this program is:
+
 ```
 "8QRLaD"
 ```
+
+#### Decoding
 
 ```haskell
 {-# LANGUAGE OverloadedStrings #-}
@@ -54,21 +60,23 @@ main =
     Right nums -> print nums
 ```
 
+The output of this program is:
+
 ```
 [1,2,3]
 ```
 
-Note that `decode` takes a `Text` value as input. Without the `OverloadedStrings`
-extension, the `"8QRLaD"` string literal in the above example would need to be
-explicitly converted, using the `pack` function from `Data.Text`.
+> Note that `decode` takes a `Text` value as input. Without the `OverloadedStrings` extension, the `"8QRLaD"` string literal in the above example would need to be explicitly converted, using the `pack` function from `Data.Text`.
+>
+> ```haskell
+> import Data.Text (pack)
+> ```
+> 
+> ```haskell
+> decode (pack "8QRLaD")
+> ```
 
-```haskell
-import Data.Text (pack)
-```
-
-```haskell
-decode (pack "8QRLaD")
-```
+#### Setting options
 
 ```haskell
 main =
@@ -126,67 +134,17 @@ makeIds = do
 ["QkA3AmAC","fh9rtRtv","a7totm7V","KF5Z5l4X","ngqSq2b3","pjkCJlJf","yTrOSYSQ","HKVia9J2","0gTF2Zr3","jiw7wbw1","PtNNFWFA","I0vlvGvD","08TV2Sr5","UPLILMlD","ut2A2D20","Inv5vZvK","pDkBJTJJ","P1N8FRFr","R2eqeYeY","Ki5o5Q4U","1k70bzbD","dK4cE6Es","1L7XbJbZ","FyGjG1G0","ZEMReNre","aKtMte79","UtLNL9li","o6lElt2f","1w7ebtbl","nuqNqqbk","HlVSaOJ9","IKvdvave","3cWkDSD9","oQlzlc2C","RrezeDeC","OhJcJoVR","OEJFJzVJ","oplJlm2F","u8292F2H","FZGiGzGI","dN40E9EO","Q0AdAhAR","HJVzaaJC","s08YCUdX","sW8UCadW","ZaMNekrp","X4bsWS4Z","OoJIJEVj","Rqe1eTey","3aWYDXDs"]
 ```
 
-## Types
-
-### `SqidsOptions`
+## ⚙️ Options
 
 @todo
 
-### `SqidsError`
+## 💣 Errors
 
 @todo
 
-### `SqidsT`
+## 📄 API documentation
 
-@todo
-
-### `Sqids`
-
-@todo
-
-## Type classes
-
-### `MonadSqids`
-
-@todo
-
-## Functions
-
-### `encode`
-
-@todo
-
-### `decode`
-
-@todo
-
-### `sqidsVersion`
-
-@todo
-
-### `defaultSqidsOptions`
-
-@todo
-
-### `sqidsOptions`
-
-@todo
-
-### `runSqidsT`
-
-@todo
-
-### `sqidsT`
-
-This is a short form for `runSqidsT defaultSqidsOptions`.
-
-### `runSqids`
-
-@todo
-
-### `sqids`
-
-This is a short form for `runSqids defaultSqidsOptions`.
+See https://hackage.haskell.org/package/sqids
 
 ## Examples
 

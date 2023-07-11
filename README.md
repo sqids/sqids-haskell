@@ -118,12 +118,22 @@ main = do
 
 #### Monad transformer
 
-In a real-world application, you probably want to create your `SqidsOptions` 
-once, and then be able to call `encode`/`decode` in various places across your 
-code without passing this object around. If you're application relies on a 
-custom monad stack, this is achieved by adding the `SqidsT` transformer at a
-suitable layer of the stack. Below is an example where Sqids is used in
-combination with the `Writer` and `IO` monads.
+In a real-world application, calling `sqids` or `runSqids` every time you need 
+to encode or decode a value isn't ideal. Instead, you probably want to create 
+your `SqidsOptions` once, and then call `encode`/`decode` in various places 
+across your code without having to pass this object around explicitly. If your 
+application relies on a custom monad stack, this is achieved by adding the 
+`SqidsT` transformer at some suitable layer of the stack. Instead of `sqids` 
+and `runSqids`, there are two corresponding functions to extract the value from
+a `SqidsT`:
+
+```
+sqidsT :: Monad m => SqidsT m a -> m (Either SqidsError a)
+runSqidsT :: Monad m => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
+```
+
+Below is an example where Sqids is used in combination with the `Writer` and 
+`IO` monads.
 
 ```haskell
 module Main where
@@ -151,6 +161,7 @@ makeIds = do
 The output of this program is:
 
 ```
+"Generating IDs"
 ["QkA3AmAC","fh9rtRtv","a7totm7V","KF5Z5l4X","ngqSq2b3","pjkCJlJf","yTrOSYSQ","HKVia9J2","0gTF2Zr3","jiw7wbw1","PtNNFWFA","I0vlvGvD","08TV2Sr5","UPLILMlD","ut2A2D20","Inv5vZvK","pDkBJTJJ","P1N8FRFr","R2eqeYeY","Ki5o5Q4U","1k70bzbD","dK4cE6Es","1L7XbJbZ","FyGjG1G0","ZEMReNre","aKtMte79","UtLNL9li","o6lElt2f","1w7ebtbl","nuqNqqbk","HlVSaOJ9","IKvdvave","3cWkDSD9","oQlzlc2C","RrezeDeC","OhJcJoVR","OEJFJzVJ","oplJlm2F","u8292F2H","FZGiGzGI","dN40E9EO","Q0AdAhAR","HJVzaaJC","s08YCUdX","sW8UCadW","ZaMNekrp","X4bsWS4Z","OoJIJEVj","Rqe1eTey","3aWYDXDs"]
 ```
 
@@ -160,23 +171,19 @@ The output of this program is:
 
 @todo
 
-Default value:
-
-```
-abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
-```
+* Default value: `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`
 
 ### `minLength :: Int`
 
 The minimum allowed length of IDs.
 
-Default value: 0
+* Default value: `0`
 
 ### `blocklist :: [Text]`
 
 A list of words that must never appear in IDs.
 
-Default value: See __
+* Default value: See `src/Web/Sqids/Blocklist.hs`.
 
 ## 💣 Errors
 

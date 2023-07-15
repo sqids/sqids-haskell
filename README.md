@@ -269,6 +269,10 @@ main :: IO ()
 main = fromRight () <$> runRepl
 ```
 
+> Program example output: 
+>
+> ![Example](readme/example.gif)
+
 ## ⚙️ Options
 
 ### `alphabet :: Text`

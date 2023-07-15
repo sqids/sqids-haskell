@@ -25,12 +25,29 @@ stack install sqids
 
 ### Usage
 
+Use `encode` to translate a list of non-negative integers into an ID, and
+`decode` to retrieve back the list of numbers encoded by an ID.
+
 ```
 encode :: [Int] -> Sqids Text
-deocde :: Text -> Sqids [Int]
+decode:: Text -> Sqids [Int]
+```
 
+These functions return (monadic) values of type `Sqids a`. Calling `sqids` or
+`runSqids` (see below) is the most straightforward way to extract the `something`
+from a `Sqids something` value.
+
+```
 sqids :: Sqids a -> Either SqidsError a
 ```
+
+To be more accurate, this gives you a value of type `Either SqidsError a`, where
+`a` is the ID in the case of `encode`. If encoding fails for some reason, then
+the `Left` constructor [contains the error](#error-handling).
+For some use cases, directly calling `sqids` or `runSqids` in this way is
+sufficient. If you do this in multiple locations in your code, however,
+especially when IO or other effects are involved, the
+[`SqidsT` monad transformer](#monad-transformer) is a better choice.
 
 #### Encoding
 
@@ -46,11 +63,11 @@ main =
     Right sqid -> print sqid
 ```
 
-The output of this program is:
-
-```
-"8QRLaD"
-```
+> The output of this program is:
+>
+> ```
+> "8QRLaD"
+> ```
 
 #### Decoding
 
@@ -67,27 +84,35 @@ main =
     Right nums -> print nums
 ```
 
-The output of this program is:
-
-```
-[1,2,3]
-```
-
-> Note that `decode` takes a `Text` value as input. Without the `OverloadedStrings` extension, the `"8QRLaD"` string literal in the above example would need to be explicitly converted, using the `pack` function from `Data.Text`.
+> The output of this program is:
 >
-> ```haskell
-> import Data.Text (pack)
 > ```
->
-> ```haskell
-> decode (pack "8QRLaD")
+> [1,2,3]
 > ```
+
+##### A note about the `OverloadedStrings` language extension
+
+`decode` takes a `Text` value as input. If you are not compiling with `OverloadedStrings` enabled, the `"8QRLaD"` string literal in the previous example would need to be explicitly converted, using the `pack` function from `Data.Text`.
+
+```haskell
+import Data.Text (pack)
+```
+
+```haskell
+decode (pack "8QRLaD")
+```
 
 #### Setting options
+
+To pass custom options to `encode` and `decode`, use `runSqids` which takes
+an additional `SqidsOptions` argument.
 
 ```
 runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
 ```
+
+See [here](#⚙%EF%B8%8F-options) for available options. You can override the default values using
+`defaultSqidsOptions`, and the following idiom:
 
 ```haskell
 main =
@@ -96,9 +121,13 @@ main =
     Right sqid -> print sqid
 ```
 
-```
-"75JILToVsGerOADWmT1cd0dL"
-```
+> The output of this program is:
+>
+> ```
+> "75JILToVsGerOADWmT1cd0dL"
+> ```
+
+Or, you can set all options at once:
 
 ```haskell
 main = do
@@ -112,27 +141,29 @@ main = do
     Right sqid -> print sqid
 ```
 
-```
-"31764540"
-```
+> The output of this program is:
+>
+> ```
+> "31764540"
+> ```
 
 #### Monad transformer
 
-In a real-world application, calling `sqids` or `runSqids` every time you need 
-to encode or decode a value isn't ideal. Instead, you probably want to create 
-your `SqidsOptions` once, and then call `encode`/`decode` in various places 
-across your code without having to pass this object around explicitly. If your 
-application relies on a custom monad stack, this is achieved by adding the 
-`SqidsT` transformer at some suitable layer of the stack. Instead of `sqids` 
-and `runSqids`, there are two corresponding functions to extract the value from
-a `SqidsT`:
+In a more realistically sized application, calling `runSqids` every time you
+need to access the value returned by `encode` or `decode` isn't ideal. Instead,
+you probably want to create your `SqidsOptions` once, and then do things with
+the IDs across the code without having to pass the options object along every
+time. Assuming your application relies on a transformer stack to combine effects
+from different monads, then this implies adding the `SqidsT` transformer at
+some layer of the stack. Instead of `sqids` and `runSqids`, there are two
+corresponding functions to fish out the value from inside of `SqidsT`:
 
 ```
 sqidsT :: Monad m => SqidsT m a -> m (Either SqidsError a)
 runSqidsT :: Monad m => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
 ```
 
-Below is an example where Sqids is used in combination with the `Writer` and 
+Below is an example where `SqidsT` is used in combination with the `Writer` and
 `IO` monads.
 
 ```haskell
@@ -147,29 +178,45 @@ import Web.Sqids
 
 main :: IO ()
 main = do
-  w <- execWriterT (sqidsT makeIds)
-  print w
+  w <- sqidsT (execWriterT makeIds)
+  case w of
+    Left  err -> print ("Error: " <> show err)
+    Right ids -> print ids
 
-makeIds :: SqidsT (WriterT [Text] IO) ()
+makeIds :: WriterT [Text] (SqidsT IO) ()
 makeIds = do
   liftIO $ print "Generating IDs"
   forM_ [1 .. 50] $ \n -> do
     sqid <- encode [n, n, n, n]
-    lift (tell [sqid])
+    tell [sqid]
 ```
 
-The output of this program is:
+> The output of this program is:
+>
+> ```
+> "Generating IDs"
+> ["QkA3AmAC","fh9rtRtv","a7totm7V","KF5Z5l4X","ngqSq2b3","pjkCJlJf","yTrOSYSQ","HKVia9J2","0gTF2Zr3","jiw7wbw1","PtNNFWFA","I0vlvGvD","08TV2Sr5","UPLILMlD","ut2A2D20","Inv5vZvK","pDkBJTJJ","P1N8FRFr","R2eqeYeY","Ki5o5Q4U","1k70bzbD","dK4cE6Es","1L7XbJbZ","FyGjG1G0","ZEMReNre","aKtMte79","UtLNL9li","o6lElt2f","1w7ebtbl","nuqNqqbk","HlVSaOJ9","IKvdvave","3cWkDSD9","oQlzlc2C","RrezeDeC","OhJcJoVR","OEJFJzVJ","oplJlm2F","u8292F2H","FZGiGzGI","dN40E9EO","Q0AdAhAR","HJVzaaJC","s08YCUdX","sW8UCadW","ZaMNekrp","X4bsWS4Z","OoJIJEVj","Rqe1eTey","3aWYDXDs"]
+> ```
 
+#### Error handling
+
+Encoding and decoding can fail for various reasons.
+
+```haskell
+  case runSqids options (encode numbers) of
+    Left SqidsNegativeNumberInInput ->
+      print "Negative numbers are not allowed as input."
+    _ ->
+      -- etc...
 ```
-"Generating IDs"
-["QkA3AmAC","fh9rtRtv","a7totm7V","KF5Z5l4X","ngqSq2b3","pjkCJlJf","yTrOSYSQ","HKVia9J2","0gTF2Zr3","jiw7wbw1","PtNNFWFA","I0vlvGvD","08TV2Sr5","UPLILMlD","ut2A2D20","Inv5vZvK","pDkBJTJJ","P1N8FRFr","R2eqeYeY","Ki5o5Q4U","1k70bzbD","dK4cE6Es","1L7XbJbZ","FyGjG1G0","ZEMReNre","aKtMte79","UtLNL9li","o6lElt2f","1w7ebtbl","nuqNqqbk","HlVSaOJ9","IKvdvave","3cWkDSD9","oQlzlc2C","RrezeDeC","OhJcJoVR","OEJFJzVJ","oplJlm2F","u8292F2H","FZGiGzGI","dN40E9EO","Q0AdAhAR","HJVzaaJC","s08YCUdX","sW8UCadW","ZaMNekrp","X4bsWS4Z","OoJIJEVj","Rqe1eTey","3aWYDXDs"]
-```
+
+See [here](#💣-errors) for available errors.
 
 ## ⚙️ Options
 
 ### `alphabet :: Text`
 
-@todo
+The alphabet used by the algorithm for encoding and decoding.
 
 * Default value: `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`
 
@@ -183,7 +230,7 @@ The minimum allowed length of IDs.
 
 A list of words that must never appear in IDs.
 
-* Default value: See `src/Web/Sqids/Blocklist.hs`.
+* Default value: See [src/Web/Sqids/Blocklist.hs](src/Web/Sqids/Blocklist.hs).
 
 ## 💣 Errors
 
@@ -221,7 +268,7 @@ See https://hackage.haskell.org/package/sqids
 
 ## Examples
 
-Using a custom alphabet?
+Using a custom alphabet
 
 @todo
 

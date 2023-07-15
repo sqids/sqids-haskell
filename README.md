@@ -225,7 +225,7 @@ Encoding and decoding can fail for various reasons.
       -- etc...
 ```
 
-See [here](#💣-errors) for available errors.
+See [here](#💣-errors) for possible errors.
 
 ## ⚙️ Options
 

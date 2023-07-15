@@ -127,6 +127,21 @@ main =
 > "75JILToVsGerOADWmT1cd0dL"
 > ```
 
+To set a custom alphabet:
+
+```haskell
+main =
+  case runSqids defaultSqidsOptions{ alphabet = "0123456789ABCDEF" } (encode [1, 2, 3]) of
+    Left  {}   -> print "Something went wrong."
+    Right sqid -> print sqid
+```
+
+> The output of this program is:
+>
+> ```
+> "4D9D02"
+> ```
+
 Or, you can set all options at once:
 
 ```haskell
@@ -265,12 +280,6 @@ non-negative integers are permitted.
 ## 📄 API documentation
 
 See https://hackage.haskell.org/package/sqids
-
-## Examples
-
-Using a custom alphabet
-
-@todo
 
 ## License
 

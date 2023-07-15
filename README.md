@@ -266,7 +266,7 @@ The given `minLength` value is not within the valid range.
 ### `SqidsNegativeNumberInInput`
 
 One or more numbers in the list passed to `encode` is negative. Only
-non-negative integers are permitted.
+non-negative integers are accepted as input.
 
 ## Notes
 

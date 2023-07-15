@@ -246,6 +246,7 @@ The minimum allowed length of IDs.
 A list of words that must never appear in IDs.
 
 * Default value: See [src/Web/Sqids/Blocklist.hs](src/Web/Sqids/Blocklist.hs).
+* Also see [the official Sqids blocklist repository](https://github.com/sqids/sqids-blocklist).
 
 ## 💣 Errors
 
@@ -275,7 +276,7 @@ non-negative integers are permitted.
 
 ## 📄 API documentation
 
-See https://hackage.haskell.org/package/sqids
+See https://hackage.haskell.org/package/sqids.
 
 ## License
 

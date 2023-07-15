@@ -262,7 +262,6 @@ repl = do
                 putStrLn "Unexpected error"
       repl
 
-
 runRepl :: IO (Either SqidsError ())
 runRepl = runSqidsT defaultSqidsOptions repl
 

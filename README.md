@@ -7,6 +7,22 @@
 
 Sqids (pronounced "squids") is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
 
+### Table of contents
+
+* [Getting started](#getting-started)
+  * [Installation](#installation)
+  * [Usage](#usage)
+    * [Encoding](#encoding)
+    * [Decoding](#decoding)
+    * [Setting options](#setting-options)
+    * [Monad transformer](#monad-transformer)
+    * [Error handling](#error-handling)
+* [Options](#%EF%B8%8F-options)
+* [Errors](#-errors)
+* [Notes](#notes)
+* [API documentation](#-api-documentation)
+* [License](#license)
+
 ## 🏃Getting started
 
 ### Installation

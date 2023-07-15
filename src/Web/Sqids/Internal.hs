@@ -83,7 +83,6 @@ data SqidsError
   | SqidsAlphabetRepeatedCharacters
   | SqidsInvalidMinLength
   | SqidsNegativeNumberInInput
-  | SqidsOutOfRangeError
   deriving (Show, Read, Eq, Ord)
 
 type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
@@ -341,7 +340,7 @@ encodeNumbers numbers partitioned = do
         case nums of
           n : ns | partitioned ->
             if n == maxBound
-              then throwError SqidsOutOfRangeError
+              then error "encodeNumbers: out of range"
               else encodeNumbers (n + 1 : ns) True
           n : ns ->
             encodeNumbers (0 : n : ns) True

@@ -267,10 +267,6 @@ The given `minLength` value is not within the valid range.
 One or more numbers in the list passed to `encode` is negative. Only
 non-negative integers are permitted.
 
-### `SqidsOutOfRangeError`
-
-@todo
-
 ## Notes
 
 - **Do not encode sensitive data.** These IDs can be easily decoded.

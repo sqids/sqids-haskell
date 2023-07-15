@@ -227,6 +227,49 @@ Encoding and decoding can fail for various reasons.
 
 See [here](#-errors) for possible errors.
 
+The following is an example of how to handle errors with the help of
+`MonadError`s exception-handling mechanism:
+
+```haskell
+{-# LANGUAGE OverloadedStrings #-}
+module Main where
+
+import Control.Monad.Except (catchError)
+import Control.Monad.IO.Class (liftIO)
+import Data.Either (fromRight)
+import Data.Text (unpack)
+import Text.Read (readMaybe)
+import Web.Sqids
+
+repl :: SqidsT IO ()
+repl = do
+  input <- liftIO $ do
+    putStrLn "Enter a comma-separated list of non-negative integers, or \"exit\"."
+    putStr "> "
+    getLine
+  if input == "exit"
+    then pure ()
+    else do
+      case readMaybe ("[" <> input <> "]") of
+        Nothing ->
+          liftIO $ putStrLn "Invalid input: Please try again."
+        Just numbers ->
+          catchError (encode numbers >>= liftIO . putStrLn . unpack) $ \err ->
+            liftIO $ case err of
+              SqidsNegativeNumberInInput ->
+                putStrLn "Only non-negative integers are accepted as input."
+              _ ->
+                putStrLn "Unexpected error"
+      repl
+
+
+runRepl :: IO (Either SqidsError ())
+runRepl = runSqidsT defaultSqidsOptions repl
+
+main :: IO ()
+main = fromRight () <$> runRepl
+```
+
 ## ⚙️ Options
 
 ### `alphabet :: Text`

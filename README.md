@@ -111,7 +111,7 @@ an additional `SqidsOptions` argument.
 runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
 ```
 
-See [here](#Options) for available options. You can override the default values using
+See [here](%EF%B8%8F-options) for available options. You can override the default values using
 `defaultSqidsOptions`, and the following idiom:
 
 ```haskell
@@ -225,7 +225,7 @@ Encoding and decoding can fail for various reasons.
       -- etc...
 ```
 
-See [here](#Errors) for possible errors.
+See [here](#-errors) for possible errors.
 
 ## ⚙️ Options
 

@@ -12,7 +12,7 @@ Sqids (pronounced "squids") is a small library that lets you generate YouTube-lo
 * [Getting started](#getting-started)
   * [Installation](#installation)
   * [Usage](#usage)
-    * [Encoding)(#encoding)
+    * [Encoding](#encoding)
     * [Decoding](#decoding)
     * [Setting options](#setting-options)
     * [Monad transformer](#monad-transformer)

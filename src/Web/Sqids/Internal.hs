@@ -78,11 +78,18 @@ data SqidsContext = SqidsContext
 emptySqidsContext :: SqidsContext
 emptySqidsContext = SqidsContext Text.empty 0 []
 
+-- | Errors that can occur during encoding and decoding.
 data SqidsError
   = SqidsAlphabetTooShort
+  -- ^ The alphabet must be at least 5 characters long.
   | SqidsAlphabetRepeatedCharacters
+  -- ^ The provided alphabet contains duplicate characters. E.g., "abcdefgg" is
+  --   not a valid alphabet.
   | SqidsInvalidMinLength
+  -- ^ The given `minLength` value is not within the valid range.
   | SqidsNegativeNumberInInput
+  -- ^ One or more numbers in the list passed to `encode` are negative. Only
+  --   non-negative integers can be used as input.
   deriving (Show, Read, Eq, Ord)
 
 type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
@@ -159,20 +166,24 @@ newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
     , MonadSqids
     )
 
+-- | Evaluate a `SqidsT` computation with the given options.
 runSqidsT :: (Monad m) => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
 runSqidsT options value =
   runExceptT (runReaderT (unwrapSqidsT withOptions) emptySqidsContext)
   where
     withOptions = sqidsOptions options >>= (`local` value) . const
 
--- | This is a short form for `runSqidsT defaultSqidsOptions`.
+-- | Evaluate a `SqidsT` computation with the default options. This is a short
+--   form for `runSqidsT defaultSqidsOptions`.
 sqidsT :: (Monad m) => SqidsT m a -> m (Either SqidsError a)
 sqidsT = runSqidsT defaultSqidsOptions
 
+-- | Evaluate a `Sqids` computation with the given options.
 runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
 runSqids options = runIdentity . runSqidsT options . unwrapSqids
 
--- | This is a short form for `runSqids defaultSqidsOptions`.
+-- | Evaluate a `Sqids` computation with the default options. This is a short
+--   form for `runSqids defaultSqidsOptions`.
 sqids :: Sqids a -> Either SqidsError a
 sqids = runSqids defaultSqidsOptions
 

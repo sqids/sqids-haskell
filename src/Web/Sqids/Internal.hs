@@ -52,6 +52,7 @@ import qualified Data.Text as Text
 sqidsVersion :: String
 sqidsVersion = "0.0.1"
 
+-- | Options that can be passed to `runSqids` or `runSqidsT`.
 data SqidsOptions = SqidsOptions
   { alphabet  :: !Text
   -- ^ URL-safe characters
@@ -61,6 +62,7 @@ data SqidsOptions = SqidsOptions
   -- ^ A list of words that must never appear in IDs
   } deriving (Show, Eq, Ord)
 
+-- | Default options
 defaultSqidsOptions :: SqidsOptions
 defaultSqidsOptions = SqidsOptions
   { alphabet  = Text.pack "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -130,6 +132,7 @@ sqidsOptions SqidsOptions{..} = do
     , sqidsBlocklist = filteredBlocklist alphabet blocklist
     }
 
+-- | Sqids monad transformer
 newtype SqidsT m a = SqidsT { unwrapSqidsT :: SqidsStack m a }
   deriving
     ( Functor
@@ -313,7 +316,10 @@ rearrangeAlphabet alph numbers =
        in ord currentChar + i + a
 
 encodeNumbers ::
-  (MonadSqids m, MonadError SqidsError m, MonadReader SqidsContext m) => [Int] -> Bool -> m Text
+  ( MonadSqids m
+  , MonadError SqidsError m
+  , MonadReader SqidsContext m
+  ) => [Int] -> Bool -> m Text
 encodeNumbers numbers partitioned = do
   alph <- asks sqidsAlphabet
   let (left, right) = Text.splitAt 2 (rearrangeAlphabet alph numbers)

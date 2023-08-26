@@ -221,7 +221,7 @@ instance (MonadSqids m) => MonadSqids (SelectT r m) where
 -- Clean up blocklist:
 --
 --   1. All words must be lowercase
---   2. No words should be less than three characters
+--   2. No words should be less than three characters long
 --   3. Remove words that contain characters that are not in the alphabet
 --
 filteredBlocklist :: Text -> [Text] -> [Text]
@@ -234,9 +234,11 @@ decodeStep (sqid, alph)
   | otherwise =
       case Text.unsnoc alph of
         Just (alphabetWithoutSeparator, separatorChar) ->
-          let separator = Text.singleton separatorChar in
-            case Text.splitOn separator sqid of
+          let separator = Text.singleton separatorChar
+           in case Text.splitOn separator sqid of
               [] -> Nothing
+              (chunk : _) | not (Text.all (`Text.elem` alphabetWithoutSeparator) chunk) ->
+                Nothing
               (chunk : chunks) -> Just
                 ( toNumber chunk alphabetWithoutSeparator
                 , (Text.intercalate separator chunks, shuffle alph)

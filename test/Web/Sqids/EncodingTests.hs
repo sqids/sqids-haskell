@@ -92,6 +92,10 @@ testEncoding = do
 
       sqids (decode "*") `shouldBe` Right []
 
+    it "decoding an invalid ID with a repeating reserved character" $
+
+      sqids (decode "fff") `shouldBe` Right []
+
     it "encoding out-of-range numbers" $
 
       sqids (encode [-1]) `shouldBe` Left SqidsNegativeNumberInInput

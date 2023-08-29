@@ -145,7 +145,7 @@ an additional `SqidsOptions` argument.
 runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
 ```
 
-See [here](#%EF%B8%8F-options) for available options. You can override the default values using
+See [here](#options) for available options. You can override the default values using
 `defaultSqidsOptions`, and the following idiom:
 
 ```haskell
@@ -259,7 +259,7 @@ Encoding and decoding can fail for various reasons.
       -- etc...
 ```
 
-See [here](#-errors) for possible errors.
+See [here](#errors) for possible errors.
 
 The following is an example of how to handle errors with the help of
 `MonadError`s exception-handling mechanism:

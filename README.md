@@ -205,7 +205,8 @@ the IDs across the code without having to pass the options object along every
 time. Assuming your application relies on a transformer stack to combine effects
 from different monads, then this implies adding the `SqidsT` transformer at
 some suitable layer of the stack. Instead of `sqids` and `runSqids`, there are 
-two corresponding functions to fish out the value from inside of `SqidsT`:
+two corresponding functions to fish out :fishing_pole_and_fish: the value from
+inside of `SqidsT`:
 
 ```
 sqidsT :: Monad m => SqidsT m a -> m (Either SqidsError a)

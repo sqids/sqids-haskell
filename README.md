@@ -27,7 +27,7 @@
 
 ### Table of contents
 
-* [Getting started](#🚀-getting-started)
+* [Getting started](#-getting-started)
   * [Installation](#installation)
   * [Usage](#usage)
     * [Encoding](#encoding)

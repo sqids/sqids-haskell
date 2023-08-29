@@ -1,15 +1,33 @@
-# [Sqids Haskell](https://sqids.org/haskell)
+<p align="center">
+  <img alt="Logo" src="readme/sqids-haskell.svg" width="140" />
+</p>
 
-[![Haskell CI](https://github.com/sqids/sqids-haskell/actions/workflows/haskell.yml/badge.svg)](https://github.com/sqids/sqids-haskell/actions/workflows/haskell.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Language](https://img.shields.io/badge/language-Haskell-orange.svg)](https://www.haskell.org/)
-[![Hackage](https://img.shields.io/hackage/v/sqids.svg)](https://hackage.haskell.org/package/sqids)
+<a href="https://sqids.org/haskell">
+  <h1 align="center">Sqids Haskell</h1>
+</a>
 
-Sqids (pronounced "squids") is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
+<p align="center">
+  <a href="https://github.com/sqids/sqids-haskell/actions/workflows/haskell.yml">
+    <img alt="" src="https://github.com/sqids/sqids-haskell/actions/workflows/haskell.yml/badge.svg" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img alt="" src="https://img.shields.io/badge/license-MIT-yellow.svg" />
+  </a>
+  <a href="https://www.haskell.org">
+    <img alt="" src="https://img.shields.io/badge/language-Haskell-orange.svg" />
+  </a>
+  <a href="https://hackage.haskell.org/package/sqids">
+    <img alt="" src="https://img.shields.io/hackage/v/sqids.svg" />
+  </a>
+</p>
+
+<p align="center">
+  Sqids (<em>pronounced "squids"</em>) is a small library that lets you generate YouTube-looking IDs from numbers. It's good for link shortening, fast & URL-safe ID generation and decoding back into numbers for quicker database lookups.
+</p>
 
 ### Table of contents
 
-* [Getting started](#getting-started)
+* [Getting started](#🚀-getting-started)
   * [Installation](#installation)
   * [Usage](#usage)
     * [Encoding](#encoding)
@@ -17,13 +35,13 @@ Sqids (pronounced "squids") is a small library that lets you generate YouTube-lo
     * [Setting options](#setting-options)
     * [Monad transformer](#monad-transformer)
     * [Error handling](#error-handling)
-* [Options](#%EF%B8%8F-options)
-* [Errors](#-errors)
+* [Options](#options)
+* [Errors](#errors)
 * [Notes](#notes)
-* [API documentation](#-api-documentation)
+* [API documentation](#api-documentation)
 * [License](#license)
 
-## 🏃Getting started
+## 🚀 Getting started
 
 ### Installation
 
@@ -147,7 +165,7 @@ To set a custom alphabet:
 
 ```haskell
 main =
-  case runSqids defaultSqidsOptions{ alphabet = "0123456789ABCDEF" } (encode [1, 2, 3]) of
+  case runSqids defaultSqidsOptions{ alphabet = "mTHivO7hx3RAbr1f586SwjNnK2lgpcUVuG09BCtekZdJ4DYFPaWoMLQEsXIqyz" } (encode [1, 2, 3]) of
     Left  {}   -> print "Something went wrong."
     Right sqid -> print sqid
 ```
@@ -155,7 +173,7 @@ main =
 > The output of this program is:
 >
 > ```
-> "4D9D02"
+> "oq6TCg"
 > ```
 
 Or, you can set all options at once:
@@ -289,7 +307,7 @@ main = fromRight () <$> runRepl
 >
 > ![Example](readme/example.gif)
 
-## ⚙️ Options
+## Options
 
 ### `alphabet :: Text`
 
@@ -310,7 +328,7 @@ A list of words that must never appear in IDs.
 * Default value: See [src/Web/Sqids/Blocklist.hs](src/Web/Sqids/Blocklist.hs).
 * Also see [the official Sqids blocklist repository](https://github.com/sqids/sqids-blocklist).
 
-## 💣 Errors
+## Errors
 
 ### `SqidsAlphabetTooShort`
 
@@ -336,7 +354,7 @@ non-negative integers can be used as input.
 - **Default blocklist is auto-enabled.** It's configured for the most common profanity words. Create your own custom list by using the blocklist parameter, or pass an empty list to allow all words.
 - Read more at https://sqids.org/haskell
 
-## 📄 API documentation
+## API documentation
 
 See https://hackage.haskell.org/package/sqids.
 

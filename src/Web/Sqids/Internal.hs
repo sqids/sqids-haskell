@@ -225,8 +225,9 @@ instance (MonadSqids m) => MonadSqids (SelectT r m) where
 --   3. Remove words that contain characters that are not in the alphabet
 --
 filteredBlocklist :: Text -> [Text] -> [Text]
-filteredBlocklist alph ws = (Text.map toLower) <$> filter isValid ws where
-  isValid w = Text.length w >= 3 && Text.all (`Text.elem` alph) w
+filteredBlocklist alph ws = filter isValid (Text.map toLower <$> ws) where
+  isValid w = Text.length w >= 3 && Text.all (`Text.elem` lowercaseAlphabet) w
+  lowercaseAlphabet = Text.map toLower alph
 
 decodeStep :: (Text, Text) -> Maybe (Int, (Text, Text))
 decodeStep (sqid, alph)

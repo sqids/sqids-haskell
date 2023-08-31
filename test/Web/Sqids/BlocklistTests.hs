@@ -61,3 +61,11 @@ testBlocklist = do
 
     it "match against a short blocklist word" $
       withCustomBlocklist [ "pPQ" ] ((encode >=> decode) [1000]) `shouldBe` Right [1000]
+
+    it "blocklist filtering in constructor" $ do
+      let options = defaultSqidsOptions { alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", blocklist = ["sqnmpn"] } 
+          testFn = do
+            p <- encode [1, 2, 3]
+            q <- decode p
+            pure (p, q)
+      runSqids options testFn `shouldBe` Right ("ULPBZGBM", [1, 2, 3])

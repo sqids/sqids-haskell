@@ -32,9 +32,9 @@
   * [Usage](#usage)
     * [Encoding](#encoding)
     * [Decoding](#decoding)
-    * [Setting options](#setting-options)
-    * [Monad transformer](#monad-transformer)
-    * [Error handling](#error-handling)
+  * [Setting options](#setting-options)
+  * [Monad transformer](#monad-transformer)
+  * [Error handling](#error-handling)
 * [Options](#options)
 * [Errors](#errors)
 * [Notes](#notes)
@@ -136,7 +136,7 @@ import Data.Text (pack)
 decode (pack "8QRLaD")
 ```
 
-#### Setting options
+### Setting options
 
 To pass custom options to `encode` and `decode`, use `runSqids` which takes
 an additional `SqidsOptions` argument.
@@ -196,7 +196,7 @@ main = do
 > "31764540"
 > ```
 
-#### Monad transformer
+### Monad transformer
 
 In a more realistically sized application, calling `runSqids` every time you
 need to access the value returned by `encode` or `decode` isn't ideal. Instead,
@@ -248,7 +248,7 @@ makeIds = do
 > ["QkA3AmAC","fh9rtRtv","a7totm7V","KF5Z5l4X","ngqSq2b3","pjkCJlJf","yTrOSYSQ","HKVia9J2","0gTF2Zr3","jiw7wbw1","PtNNFWFA","I0vlvGvD","08TV2Sr5","UPLILMlD","ut2A2D20","Inv5vZvK","pDkBJTJJ","P1N8FRFr","R2eqeYeY","Ki5o5Q4U","1k70bzbD","dK4cE6Es","1L7XbJbZ","FyGjG1G0","ZEMReNre","aKtMte79","UtLNL9li","o6lElt2f","1w7ebtbl","nuqNqqbk","HlVSaOJ9","IKvdvave","3cWkDSD9","oQlzlc2C","RrezeDeC","OhJcJoVR","OEJFJzVJ","oplJlm2F","u8292F2H","FZGiGzGI","dN40E9EO","Q0AdAhAR","HJVzaaJC","s08YCUdX","sW8UCadW","ZaMNekrp","X4bsWS4Z","OoJIJEVj","Rqe1eTey","3aWYDXDs"]
 > ```
 
-#### Error handling
+### Error handling
 
 Encoding and decoding can fail for various reasons.
 

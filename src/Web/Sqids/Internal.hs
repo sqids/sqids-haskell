@@ -55,11 +55,11 @@ sqidsVersion = "0.0.1"
 -- | Options that can be passed to `runSqids` or `runSqidsT`.
 data SqidsOptions = SqidsOptions
   { alphabet  :: !Text
-  -- ^ URL-safe characters
+  -- ^ The set of characters to use for encoding and decoding IDs.
   , minLength :: !Int
-  -- ^ The minimum allowed length of IDs
+  -- ^ The minimum allowed length of IDs.
   , blocklist :: ![Text]
-  -- ^ A list of words that must never appear in IDs
+  -- ^ A list of words that must never appear in IDs.
   } deriving (Show, Eq, Ord)
 
 -- | Default options

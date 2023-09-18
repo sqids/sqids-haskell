@@ -29,8 +29,7 @@ module Web.Sqids.Internal
   ) where
 
 import Control.Monad (when, (>=>))
-import Control.Monad.Except (ExceptT, runExceptT)
-import Control.Monad.Except (MonadError, throwError)
+import Control.Monad.Except (ExceptT, runExceptT, MonadError, throwError)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Identity (Identity, runIdentity)
 import Control.Monad.Reader (ReaderT, MonadReader, runReaderT, asks, local)
@@ -157,7 +156,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | otherwise =
         encodeNumbers numbers False
 
-  decode sqid = decodeWithAlphabet <$> asks sqidsAlphabet <*> pure sqid
+  decode sqid = asks (decodeWithAlphabet . sqidsAlphabet) <*> pure sqid
 
 newtype Sqids a = Sqids { unwrapSqids :: SqidsT Identity a }
   deriving

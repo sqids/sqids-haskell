@@ -83,7 +83,7 @@ emptySqidsContext = SqidsContext Text.empty 0 []
 -- | Errors that can occur during encoding and decoding.
 data SqidsError
   = SqidsAlphabetTooShort
-  -- ^ The alphabet must be at least 5 characters long.
+  -- ^ The alphabet must be at least 3 characters long.
   | SqidsAlphabetRepeatedCharacters
   -- ^ The provided alphabet contains duplicate characters. E.g., "abcdefgg" is
   --   not a valid alphabet.
@@ -115,7 +115,7 @@ sqidsOptions SqidsOptions{..} = do
   let alphabetLetterCount = letterCount alphabet
 
   -- Check the length of the alphabet
-  when (Text.length alphabet < 5) $
+  when (Text.length alphabet < 3) $
     throwError SqidsAlphabetTooShort
 
   -- Check that the alphabet has only unique characters

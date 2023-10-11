@@ -40,7 +40,7 @@ testBlocklist = do
       withNonEmptyBlocklist (decode "QyG4") `shouldBe` Right [ 100000 ]
 
     it "blocklist" $ do
-      let bls = 
+      let bls =
             [ "JSwXFaosAN"   -- Normal result of 1st encoding. Let's block that word on purpose
             , "OCjV9JK64o"   -- Result of 2nd encoding
             , "rBHf"         -- Result of 3rd encoding is `4rBHfOiqd3`. Let's block a substring
@@ -52,12 +52,12 @@ testBlocklist = do
       withCustomBlocklist bls (decode "1aYeB7bRUt") `shouldBe` Right [1000000, 2000000]
 
     it "decoding blocklist words should still work" $ do
-      let bls = 
+      let bls =
             [ "86Rf07"
             , "se8ojk"
             , "ARsz1p"
             , "Q8AI49"
-            , "5sQRZO"   
+            , "5sQRZO"
             ]
 
       withNonEmptyBlocklist (decode "86Rf07") `shouldBe` Right [ 1, 2, 3 ]
@@ -70,7 +70,7 @@ testBlocklist = do
       withCustomBlocklist [ "pnd" ] ((encode >=> decode) [1000]) `shouldBe` Right [1000]
 
     it "blocklist filtering in constructor" $ do
-      let options = defaultSqidsOptions { alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", blocklist = ["sxnzkl"] } 
+      let options = defaultSqidsOptions { alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", blocklist = ["sxnzkl"] }
           testFn = do
             p <- encode [1, 2, 3]
             q <- decode p
@@ -79,13 +79,13 @@ testBlocklist = do
 
     it "max encoding attempts" $ do
       let alphabet  = "abc"
-          blocklist = [ "cab", "abc", "bca" ] 
+          blocklist = [ "cab", "abc", "bca" ]
           minLength = 3
-          options = defaultSqidsOptions 
+          options = defaultSqidsOptions
             { alphabet  = alphabet
             , blocklist = blocklist
             , minLength = minLength
-            } 
+            }
 
       let Right config = runSqids defaultSqidsOptions (sqidsOptions options)
 

@@ -20,8 +20,8 @@ testMinLength = do
 
   describe "minLength" $ do
     it "simple" $ do
-      let numbers = [1, 2, 3] 
-          sqid = "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTM" 
+      let numbers = [1, 2, 3]
+          sqid = "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTM"
           len = Text.length (defaultSqidsOptions & alphabet)
 
       runSqids defaultSqidsOptions{ minLength = len } (encode numbers) `shouldBe` Right sqid

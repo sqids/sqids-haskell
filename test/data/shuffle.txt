@@ -1,5 +1,0 @@
-abcd|bcad
-abcdefghijklmnopqrstuvwxyz|lbfziqvscptmyxrekguohwjand
-a|a
-000|000
-aabbcc|acabbc

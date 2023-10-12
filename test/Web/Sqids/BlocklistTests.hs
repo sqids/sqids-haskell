@@ -94,4 +94,4 @@ testBlocklist = do
             Text.length (sqidsAlphabet config) `shouldBe` _minLength
             length (sqidsBlocklist config) `shouldBe` _minLength
 
-            runSqids options ((encode >=> decode) [0]) `shouldBe` Left SqidsMaxAttempts
+            runSqids options ((encode >=> decode) [0]) `shouldBe` Left SqidsMaxEncodingAttempts

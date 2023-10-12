@@ -13,6 +13,8 @@ module Web.Sqids
   , sqids
   , encode
   , decode
+  , encode_
+  , decode_
   ) where
 
 import Web.Sqids.Internal
@@ -28,13 +30,20 @@ import Web.Sqids.Internal
   , Sqids
   , runSqids
   , sqids
+  , sqidsEncode
+  , sqidsDecode
   )
 
 import Data.Text (Text)
-import qualified Web.Sqids.Internal as Sqids
 
 encode :: (MonadSqids m) => [Int] -> m Text
-encode = Sqids.encode
+encode = sqidsEncode
 
 decode :: (MonadSqids m) => Text -> m [Int]
-decode = Sqids.decode
+decode = sqidsDecode
+
+encode_ :: (MonadSqids m) => [Integer] -> m Text
+encode_ = sqidsEncode
+
+decode_ :: (MonadSqids m) => Text -> m [Integer]
+decode_ = sqidsDecode

@@ -102,11 +102,11 @@ type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
 
 class (Monad m) => MonadSqids m where
   -- | Encode a list of integers into an ID
-  encode :: (Integral a)
+  sqidsEncode :: (Integral a)
          => [a]     -- ^ A list of non-negative numbers to encode
          -> m Text  -- ^ Returns the generated ID
   -- | Decode an ID back into a list of integers
-  decode :: (Integral a)
+  sqidsDecode :: (Integral a)
          => Text    -- ^ The encoded ID
          -> m [a]   -- ^ Returns a list of numbers
 
@@ -156,7 +156,7 @@ instance MonadTrans SqidsT where
   lift = SqidsT . lift . lift
 
 instance (Monad m) => MonadSqids (SqidsT m) where
-  encode numbers
+  sqidsEncode numbers
     | null numbers =
         -- If no numbers passed, return an empty string
         pure Text.empty
@@ -166,7 +166,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     | otherwise =
         encodeNumbers numbers 0
 
-  decode sqid =
+  sqidsDecode sqid =
     asks (decodeWithAlphabet . sqidsAlphabet) <*> pure sqid
 
 newtype Sqids a = Sqids {unwrapSqids :: SqidsT Identity a}
@@ -201,32 +201,32 @@ sqids :: Sqids a -> Either SqidsError a
 sqids = runSqids defaultSqidsOptions
 
 instance (MonadSqids m) => MonadSqids (StateT s m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 instance (MonadSqids m) => MonadSqids (ExceptT e m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 instance (MonadSqids m) => MonadSqids (ReaderT r m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 instance (MonadSqids m, Monoid w) => MonadSqids (WriterT w m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 instance (MonadSqids m) => MonadSqids (MaybeT m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 instance (MonadSqids m) => MonadSqids (ContT r m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 instance (MonadSqids m) => MonadSqids (SelectT r m) where
-  encode = lift . encode
-  decode = lift . decode
+  sqidsEncode = lift . sqidsEncode
+  sqidsDecode = lift . sqidsDecode
 
 -- Clean up blocklist:
 --

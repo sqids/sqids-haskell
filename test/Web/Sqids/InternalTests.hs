@@ -1,11 +1,13 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Web.Sqids.InternalTests where
+module Web.Sqids.InternalTests
+  ( testInternals
+  ) where
 
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids (sqidsOptions, sqids, runSqids, encode, defaultSqidsOptions, SqidsOptions(..), SqidsError(..))
-import Web.Sqids.Internal (shuffle, toNumber, toId, isBlockedId, decodeWithAlphabet, decodeStep, filteredBlocklist, SqidsContext(..))
+import Web.Sqids (sqidsOptions, sqids, encode, SqidsOptions(..), SqidsError(..))
+import Web.Sqids.Internal (SqidsContext(..), filteredBlocklist, isBlockedId, toId, toNumber, shuffle)
 import Web.Sqids.Utils.Internal (swapChars)
 
 import qualified Data.Text as Text
@@ -91,7 +93,7 @@ testToId = do
   withTestData "toId" $ \case
     num : alph : result : _ ->
       let msg = num <> " " <> alph
-       in it msg (toId (textRead num) alph `shouldBe` result)
+       in it msg (toId (textRead num :: Int) alph `shouldBe` result)
     _ ->
       error "testToId: bad input"
 
@@ -100,7 +102,7 @@ testToNumber = do
   withTestData "toNumber" $ \case
     sqid : alph : result : _ ->
       let msg = sqid <> " " <> alph
-       in it msg (toNumber sqid alph `shouldBe` textRead result)
+       in it msg ((toNumber sqid alph :: Int) `shouldBe` textRead result)
     _ ->
       error "testToNumber: bad input"
 

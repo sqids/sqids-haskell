@@ -4,7 +4,7 @@ module Web.Sqids.BlocklistTests (testBlocklist) where
 import Control.Monad ((>=>))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids (SqidsOptions(..), SqidsError(..), Sqids(..), defaultSqidsOptions, sqidsOptions, runSqids, sqids, decode, encode)
+import Web.Sqids (SqidsOptions(..), SqidsError(..), Sqids, defaultSqidsOptions, sqidsOptions, runSqids, sqids, decode, encode)
 import Web.Sqids.Internal (sqidsAlphabet, sqidsBlocklist)
 import qualified Data.Text as Text
 
@@ -60,11 +60,11 @@ testBlocklist = do
             , "5sQRZO"
             ]
 
-      withNonEmptyBlocklist (decode "86Rf07") `shouldBe` Right [ 1, 2, 3 ]
-      withNonEmptyBlocklist (decode "se8ojk") `shouldBe` Right [ 1, 2, 3 ]
-      withNonEmptyBlocklist (decode "ARsz1p") `shouldBe` Right [ 1, 2, 3 ]
-      withNonEmptyBlocklist (decode "Q8AI49") `shouldBe` Right [ 1, 2, 3 ]
-      withNonEmptyBlocklist (decode "5sQRZO") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "86Rf07") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "se8ojk") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "ARsz1p") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "Q8AI49") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "5sQRZO") `shouldBe` Right [ 1, 2, 3 ]
 
     it "match against a short blocklist word" $
       withCustomBlocklist [ "pnd" ] ((encode >=> decode) [1000]) `shouldBe` Right [1000]
@@ -78,18 +78,20 @@ testBlocklist = do
       runSqids options testFn `shouldBe` Right ("IBSHOZ", [1, 2, 3])
 
     it "max encoding attempts" $ do
-      let alphabet  = "abc"
-          blocklist = [ "cab", "abc", "bca" ]
-          minLength = 3
+      let _alphabet  = "abc"
+          _blocklist = [ "cab", "abc", "bca" ]
+          _minLength = 3
           options = defaultSqidsOptions
-            { alphabet  = alphabet
-            , blocklist = blocklist
-            , minLength = minLength
+            { alphabet  = _alphabet
+            , blocklist = _blocklist
+            , minLength = _minLength
             }
 
-      let Right config = runSqids defaultSqidsOptions (sqidsOptions options)
+      case runSqids defaultSqidsOptions (sqidsOptions options) of
+        Left _ ->
+            error "Unexpected failure"
+        Right config -> do
+            Text.length (sqidsAlphabet config) `shouldBe` _minLength
+            length (sqidsBlocklist config) `shouldBe` _minLength
 
-      Text.length (sqidsAlphabet config) `shouldBe` minLength
-      length (sqidsBlocklist config) `shouldBe` minLength
-
-      runSqids options ((encode >=> decode) [0]) `shouldBe` Left SqidsMaxAttempts
+            runSqids options ((encode >=> decode) [0]) `shouldBe` Left SqidsMaxAttempts

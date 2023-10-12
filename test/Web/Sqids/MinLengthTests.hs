@@ -66,7 +66,5 @@ testMinLength = do
             sqids (decode sqid) `shouldBe` Right numbers
 
     it "out-of-range invalid min length" $ do
-      let len = Text.length (defaultSqidsOptions & alphabet)
-
       sqids (sqidsOptions defaultSqidsOptions{ minLength = -1 }) `shouldBe` Left SqidsInvalidMinLength
       sqids (sqidsOptions defaultSqidsOptions{ minLength = 256 }) `shouldBe` Left SqidsInvalidMinLength

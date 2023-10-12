@@ -4,7 +4,7 @@ module Web.Sqids.EncodingTests (testEncoding) where
 import Control.Monad (forM_, (<=<))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids (SqidsOptions(..), SqidsError(..), defaultSqidsOptions, sqidsOptions, runSqids, sqids, decode, encode)
+import Web.Sqids (SqidsError(..), sqids, decode, encode)
 
 testEncodeDecodeAll :: [(Text, [Int])] -> IO ()
 testEncodeDecodeAll ss =

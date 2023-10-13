@@ -376,7 +376,7 @@ non-negative integers can be used as input.
 
 ### `SqidsMaxEncodingAttempts`
 
-Encoding failed after too many recursive attempts. This happens if the
+Encoding failed after too many recursive iterations. This happens if the
 blocklist is too restrictive. Consider the following example:
 
 ```haskell

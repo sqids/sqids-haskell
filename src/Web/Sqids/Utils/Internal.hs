@@ -6,6 +6,7 @@ module Web.Sqids.Utils.Internal
   , wordsNoLongerThan
   , unsafeIndex
   , unsafeUncons
+  , containsMultibyteChars
   ) where
 
 import Data.Maybe (fromJust)
@@ -14,6 +15,8 @@ import Data.Text (Text)
 
 import qualified Data.Text as Text
 import qualified Data.Set as Set
+import qualified Data.Text.Encoding as TextEncoding
+import qualified Data.ByteString as ByteString
 
 {-# INLINE letterCount #-}
 letterCount :: Text -> Int
@@ -46,3 +49,7 @@ unsafeIndex c = fromJust . Text.findIndex (== c)
 {-# INLINE unsafeUncons #-}
 unsafeUncons :: Text -> (Char, Text)
 unsafeUncons = fromJust . Text.uncons
+
+containsMultibyteChars :: Text -> Bool
+containsMultibyteChars input =
+  Text.length input /= ByteString.length (TextEncoding.encodeUtf8 input)

@@ -5,41 +5,47 @@ import Control.Monad (forM_)
 import Data.Function ((&))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe, shouldSatisfy)
-import Web.Sqids
+import Web.Sqids (SqidsOptions(..), SqidsError(..), defaultSqidsOptions, sqidsContext, runSqids, sqids, decode, encode)
+import Web.Sqids.Internal (SqidsContext)
 
 import qualified Data.Text as Text
 
--- TODO: DRY
-testEncodeDecodeAll :: [(Text, [Int])] -> IO ()
-testEncodeDecodeAll ss = do
-  let len = Text.length (defaultSqidsOptions & alphabet)
-  forM_ ss $ \(sqid, numbers) -> do
-    runSqids defaultSqidsOptions{ minLength = len } (encode numbers) `shouldBe` Right sqid
-    runSqids defaultSqidsOptions{ minLength = len } (decode sqid) `shouldBe` Right numbers
+createContext :: SqidsOptions -> Either SqidsError (SqidsContext Int)
+createContext options = sqids (sqidsContext options)
+
+testEncodeDecodeAll :: [(Int, Text)] -> IO ()
+testEncodeDecodeAll ss =
+  forM_ ss $ \(len, sqid) -> do
+    runSqids defaultSqidsOptions{ minLength = len } (encode [1, 2, 3]) `shouldBe` Right sqid
+    runSqids defaultSqidsOptions{ minLength = len } (decode sqid) `shouldBe` Right [1, 2, 3]
 
 testMinLength :: SpecWith ()
 testMinLength = do
+
   describe "minLength" $ do
     it "simple" $ do
       let numbers = [1, 2, 3]
-          sqid = "75JILToVsGerOADWmHlY38xvbaNZKQ9wdFS0B6kcMEtnRpgizhjU42qT1cd0dL"
+          sqid = "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTM"
           len = Text.length (defaultSqidsOptions & alphabet)
 
       runSqids defaultSqidsOptions{ minLength = len } (encode numbers) `shouldBe` Right sqid
       runSqids defaultSqidsOptions{ minLength = len } (decode sqid) `shouldBe` Right numbers
 
-    it "incremental numbers" $
+    it "incremental numbers" $ do
+      let len = Text.length (defaultSqidsOptions & alphabet)
       testEncodeDecodeAll
-        [ ( "jf26PLNeO5WbJDUV7FmMtlGXps3CoqkHnZ8cYd19yIiTAQuvKSExzhrRghBlwf", [0, 0] )
-        , ( "vQLUq7zWXC6k9cNOtgJ2ZK8rbxuipBFAS10yTdYeRa3ojHwGnmMV4PDhESI2jL", [0, 1] )
-        , ( "YhcpVK3COXbifmnZoLuxWgBQwtjsSaDGAdr0ReTHM16yI9vU8JNzlFq5Eu2oPp", [0, 2] )
-        , ( "OTkn9daFgDZX6LbmfxI83RSKetJu0APihlsrYoz5pvQw7GyWHEUcN2jBqd4kJ9", [0, 3] )
-        , ( "h2cV5eLNYj1x4ToZpfM90UlgHBOKikQFvnW36AC8zrmuJ7XdRytIGPawqYEbBe", [0, 4] )
-        , ( "7Mf0HeUNkpsZOTvmcj836P9EWKaACBubInFJtwXR2DSzgYGhQV5i4lLxoT1qdU", [0, 5] )
-        , ( "APVSD1ZIY4WGBK75xktMfTev8qsCJw6oyH2j3OnLcXRlhziUmpbuNEar05QCsI", [0, 6] )
-        , ( "P0LUhnlT76rsWSofOeyRGQZv1cC5qu3dtaJYNEXwk8Vpx92bKiHIz4MgmiDOF7", [0, 7] )
-        , ( "xAhypZMXYIGCL4uW0te6lsFHaPc3SiD1TBgw5O7bvodzjqUn89JQRfk2Nvm4JI", [0, 8] )
-        , ( "94dRPIZ6irlXWvTbKywFuAhBoECQOVMjDJp53s2xeqaSzHY8nc17tmkLGwfGNl", [0, 9] )
+        [ ( 6, "86Rf07" )
+        , ( 7, "86Rf07x" )
+        , ( 8, "86Rf07xd" )
+        , ( 9, "86Rf07xd4" )
+        , ( 10, "86Rf07xd4z" )
+        , ( 11, "86Rf07xd4zB" )
+        , ( 12, "86Rf07xd4zBm" )
+        , ( 13, "86Rf07xd4zBmi" )
+        , ( len + 0, "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTM" )
+        , ( len + 1, "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTMy" )
+        , ( len + 2, "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTMyf" )
+        , ( len + 3, "86Rf07xd4zBmiJXQG6otHEbew02c3PWsUOLZxADhCpKj7aVFv9I8RquYrNlSTMyf1" )
         ]
 
     it "min lengths" $ do
@@ -64,7 +70,5 @@ testMinLength = do
             sqids (decode sqid) `shouldBe` Right numbers
 
     it "out-of-range invalid min length" $ do
-      let len = Text.length (defaultSqidsOptions & alphabet)
-
-      sqids (sqidsOptions defaultSqidsOptions{ minLength = (-1) }) `shouldBe` Left SqidsInvalidMinLength
-      sqids (sqidsOptions defaultSqidsOptions{ minLength = len + 1 }) `shouldBe` Left SqidsInvalidMinLength
+      createContext (defaultSqidsOptions{ minLength = -1 }) `shouldBe` Left SqidsInvalidMinLength
+      createContext (defaultSqidsOptions{ minLength = 256 }) `shouldBe` Left SqidsInvalidMinLength

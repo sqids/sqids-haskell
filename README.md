@@ -45,7 +45,7 @@
 
 ### Installation
 
-Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). To install this package, run:
+Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). To install it, run:
 
 ```
 cabal install sqids
@@ -59,29 +59,51 @@ stack install sqids
 
 ### Usage
 
+The library exposes two versions of the API;
+
+- `Web.Sqids` relies on Haskell's `Int` data type, whereas
+- `Web.Sqids.Integer` uses `Integer`s, which support arbitrarily large integers.
+
+If you need to work with (i.e., encode and decode) large numbers, it is
+recommended to choose the latter option, in which case you would import the
+library as:
+
+```
+import Web.Sqids.Integer
+```
+
+The Haskell standard (see [here](https://www.haskell.org/onlinereport/haskell2010/haskellch6.html#dx13-135009))
+guarantees the range supported by `Int` to have an upper bound of at least
+2<sup>29</sup> - 1 (= 536,870,911). If this does not present a problem for your
+use case, instead use:
+
+```
+import Web.Sqids
+```
+
 Use `encode` to translate a list of non-negative integers into an ID, and
 `decode` to retrieve back the list of numbers encoded by an ID.
 
-```
-encode :: [Int] -> Sqids Text
-decode:: Text -> Sqids [Int]
-```
-
-These functions return (monadic) values of type `Sqids a`. Calling `sqids` or
-`runSqids` (see below) is the most straightforward way to extract the `something`
-from a `Sqids something` value.
-
-```
-sqids :: Sqids a -> Either SqidsError a
+```haskell
+encode :: (Integral a) => [a] -> Sqids Text
+decode:: (Integral a) => Text -> Sqids [a]
 ```
 
-To be more accurate, this gives you a value of type `Either SqidsError a`, where
-`a` is the ID in the case of `encode`. If encoding fails for some reason, then
-the `Left` constructor [contains the error](#error-handling).
-For some use cases, directly calling `sqids` or `runSqids` in this way is
-sufficient. If you do this in multiple locations in your code, however,
-especially when IO or other effects are involved, the
-[`SqidsT` monad transformer](#monad-transformer) is a better choice.
+These functions return (monadic) values of type `Sqids Int a` or `Sqids Integer a`.
+Calling `sqids`, which uses the default configuration, or `runSqids` (see below)
+is the most straightforward way to extract the `something` from a `Sqids s something`
+value.
+
+```haskell
+sqids :: Sqids s a -> Either SqidsError a
+```
+
+This gives you a value of type `Either SqidsError a`, where `a` is the ID in the
+case of `encode`. If encoding fails for some reason, then the `Left` constructor
+[contains the error](#error-handling). For some use cases, directly calling
+`sqids` or `runSqids` in this way is sufficient. If you do this in multiple
+locations in your code, however, especially when IO or other effects are
+involved, the [`SqidsT` monad transformer](#monad-transformer) is a better choice.
 
 #### Encoding
 
@@ -100,7 +122,7 @@ main =
 > The output of this program is:
 >
 > ```
-> "8QRLaD"
+> "86Rf07"
 > ```
 
 #### Decoding
@@ -113,7 +135,7 @@ import Web.Sqids
 
 main :: IO ()
 main =
-  case sqids (decode "8QRLaD") of
+  case sqids (decode "86Rf07") of
     Left  {}   -> print "Something went wrong."
     Right nums -> print nums
 ```
@@ -126,14 +148,17 @@ main =
 
 ##### A note about the `OverloadedStrings` language extension
 
-`decode` takes a `Text` value as input. If you are not compiling with `OverloadedStrings` enabled, the `"8QRLaD"` string literal in the previous example would need to be explicitly converted, using the `pack` function from `Data.Text`.
+`decode` takes a `Text` value as input. If you are not compiling with
+`OverloadedStrings` enabled, the `"86Rf07"` string literal in the previous
+example would need to be explicitly converted, using the `pack` function from
+`Data.Text`.
 
 ```haskell
 import Data.Text (pack)
 ```
 
 ```haskell
-decode (pack "8QRLaD")
+decode (pack "86Rf07")
 ```
 
 ### Setting options
@@ -141,8 +166,8 @@ decode (pack "8QRLaD")
 To pass custom options to `encode` and `decode`, use `runSqids` which takes
 an additional `SqidsOptions` argument.
 
-```
-runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
+```haskell
+runSqids :: SqidsOptions -> Sqids s a -> Either SqidsError a
 ```
 
 See [here](#options) for available options. You can override the default values using
@@ -158,7 +183,7 @@ main =
 > The output of this program is:
 >
 > ```
-> "75JILToVsGerOADWmT1cd0dL"
+> "86Rf07xd4zBmiJXQG6otHEbe"
 > ```
 
 To set a custom alphabet:
@@ -173,7 +198,7 @@ main =
 > The output of this program is:
 >
 > ```
-> "oq6TCg"
+> "oz6E9F"
 > ```
 
 Or, you can set all options at once:
@@ -193,7 +218,7 @@ main = do
 > The output of this program is:
 >
 > ```
-> "31764540"
+> "38494176"
 > ```
 
 ### Monad transformer
@@ -204,13 +229,13 @@ you probably want to create your `SqidsOptions` once, and then do things with
 the IDs across the code without having to pass the options object along every
 time. Assuming your application relies on a transformer stack to combine effects
 from different monads, then this implies adding the `SqidsT` transformer at
-some suitable layer of the stack. Instead of `sqids` and `runSqids`, there are 
+some suitable layer of the stack. Instead of `sqids` and `runSqids`, there are
 two corresponding functions to fish out :fishing_pole_and_fish: the value from
 inside of `SqidsT`:
 
-```
-sqidsT :: Monad m => SqidsT m a -> m (Either SqidsError a)
-runSqidsT :: Monad m => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
+```haskell
+sqidsT :: Monad m => SqidsT s m a -> m (Either SqidsError a)
+runSqidsT :: Monad m => SqidsOptions -> SqidsT s m a -> m (Either SqidsError a)
 ```
 
 Below is an example where `SqidsT` is used in combination with the `Writer` and
@@ -233,7 +258,7 @@ main = do
     Left  err -> print ("Error: " <> show err)
     Right ids -> print ids
 
-makeIds :: WriterT [Text] (SqidsT IO) ()
+makeIds :: WriterT [Text] (SqidsT Int IO) ()
 makeIds = do
   liftIO $ print "Generating IDs"
   forM_ [1 .. 50] $ \n -> do
@@ -245,7 +270,7 @@ makeIds = do
 >
 > ```
 > "Generating IDs"
-> ["QkA3AmAC","fh9rtRtv","a7totm7V","KF5Z5l4X","ngqSq2b3","pjkCJlJf","yTrOSYSQ","HKVia9J2","0gTF2Zr3","jiw7wbw1","PtNNFWFA","I0vlvGvD","08TV2Sr5","UPLILMlD","ut2A2D20","Inv5vZvK","pDkBJTJJ","P1N8FRFr","R2eqeYeY","Ki5o5Q4U","1k70bzbD","dK4cE6Es","1L7XbJbZ","FyGjG1G0","ZEMReNre","aKtMte79","UtLNL9li","o6lElt2f","1w7ebtbl","nuqNqqbk","HlVSaOJ9","IKvdvave","3cWkDSD9","oQlzlc2C","RrezeDeC","OhJcJoVR","OEJFJzVJ","oplJlm2F","u8292F2H","FZGiGzGI","dN40E9EO","Q0AdAhAR","HJVzaaJC","s08YCUdX","sW8UCadW","ZaMNekrp","X4bsWS4Z","OoJIJEVj","Rqe1eTey","3aWYDXDs"]
+> ["Q8Ac4uf3","fU9zWydl","aStUNEra","KR5zQbHB","n7qefHP0","pRkWlenI","ylr03cjE","H0V1tEjl","0rTYteaW","jQw6pcuZ","P9NfMbEk","IYvhBx6l","0vTGthaI","UXLhWExs","u52hY2FK","IjvHBv6e","pqk3lJnQ","PKNDMnEj","RJepNxTd","K15yQcHf","1c72LltW","dY4YwC0z","127FLStT","F0GBXRKm","ZDMTUa09","aFtHNir0","U4LiWBxu","oRltrlxW","1w7ULqtK","nYq5fnPa","HNVMtQjF","IRv4B26F","3wWEpjeF","oXlIrpxD","RNeTNnTN","OQJXLTbo","OAJwLube","onlgrbxt","u42vYoFH","FmGvXwKx","d84vwS0K","QuAl41fQ","H9VRtOjU","sh80jrCd","sB8CjqC3","ZKMzUJ0a","XkbEbTzD","OZJnL3bj","RGevNZTU","36WapueZ"]
 > ```
 
 ### Error handling
@@ -276,7 +301,7 @@ import Data.Text (unpack)
 import Text.Read (readMaybe)
 import Web.Sqids
 
-repl :: SqidsT IO ()
+repl :: SqidsT Int IO ()
 repl = do
   input <- liftIO $ do
     putStrLn "Enter a comma-separated list of non-negative integers, or \"exit\"."
@@ -304,7 +329,7 @@ main :: IO ()
 main = fromRight () <$> runRepl
 ```
 
-> Program example output: 
+> Program example output:
 >
 > ![Example](readme/example.gif)
 
@@ -333,7 +358,7 @@ A list of words that must never appear in IDs.
 
 ### `SqidsAlphabetTooShort`
 
-The alphabet must be at least 5 characters long.
+The alphabet must be at least 3 characters long.
 
 ### `SqidsAlphabetRepeatedCharacters`
 
@@ -348,6 +373,26 @@ The given `minLength` value is not within the valid range.
 
 One or more numbers in the list passed to `encode` are negative. Only
 non-negative integers can be used as input.
+
+### `SqidsMaxEncodingAttempts`
+
+Encoding failed after too many recursive attempts. This happens if the
+blocklist is too restrictive. Consider the following example:
+
+```haskell
+  let options = defaultSqidsOptions
+        { alphabet  = "abc"
+        , blocklist = [ "cab", "abc", "bca" ]
+        , minLength = 3
+        }
+   in
+     runSqids options (encode [0])
+```
+
+### `SqidsAlphabetContainsMultibyteCharacters`
+
+The alphabet must consist of only characters in the standard single-byte
+character set.
 
 ## Notes
 

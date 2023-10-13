@@ -4,12 +4,11 @@ import Web.Sqids.BlocklistTests (testBlocklist)
 import Web.Sqids.EncodingTests (testEncoding)
 import Web.Sqids.InternalTests (testInternals)
 import Web.Sqids.MinLengthTests (testMinLength)
-import Web.Sqids.ShuffleTests (testShuffle)
-import Web.Sqids.UniquesTests (testUniques)
 
 main :: IO ()
 main =
   hspec $ do
+
     describe "\nTest internals\n" $ do
       testInternals
     --
@@ -20,5 +19,3 @@ main =
       testBlocklist
       testEncoding
       testMinLength
-      testShuffle
-      testUniques

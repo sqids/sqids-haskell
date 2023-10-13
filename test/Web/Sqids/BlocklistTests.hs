@@ -1,71 +1,98 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Web.Sqids.BlocklistTests (testBlocklist) where
 
 import Control.Monad ((>=>))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids
+import Web.Sqids (SqidsOptions(..), SqidsError(..), Sqids, defaultSqidsOptions, sqidsContext, runSqids, sqids, decode, encode)
+import Web.Sqids.Internal (sqidsAlphabet, sqidsBlocklist, SqidsContext)
+import qualified Data.Text as Text
 
-withEmptyBlocklist :: Sqids a -> Either SqidsError a
+withEmptyBlocklist :: Sqids Int a -> Either SqidsError a
 withEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = [] }
 
-withNonEmptyBlocklist :: Sqids a -> Either SqidsError a
-withNonEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = ["AvTg"] }
+withNonEmptyBlocklist :: Sqids Int a -> Either SqidsError a
+withNonEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = ["ArUO"] }
 
-withCustomBlocklist :: [Text] -> Sqids a -> Either SqidsError a
+withCustomBlocklist :: [Text] -> Sqids Int a -> Either SqidsError a
 withCustomBlocklist bls = runSqids defaultSqidsOptions { blocklist = bls }
 
 testBlocklist :: SpecWith ()
 testBlocklist = do
+
   describe "blocklist" $ do
     it "if no custom blocklist param, use the default blocklist" $ do
-      sqids (decode "sexy") `shouldBe` Right [ 200044 ]
-      sqids (encode [ 200044 ]) `shouldBe` Right "d171vI"
+      sqids (decode "aho1e") `shouldBe` Right [ 4572721 ]
+      sqids (encode [ 4572721 ]) `shouldBe` Right "JExTR"
 
     it "if an empty blocklist param passed, don't use any blocklist" $ do
-      withEmptyBlocklist (decode "sexy") `shouldBe` Right [ 200044 ]
-      withEmptyBlocklist (encode [ 200044 ]) `shouldBe` Right "sexy"
+      withEmptyBlocklist (decode "aho1e") `shouldBe` Right [ 4572721 ]
+      withEmptyBlocklist (encode [ 4572721 ]) `shouldBe` Right "aho1e"
 
     it "if a non-empty blocklist param passed, use only that" $ do
-      withNonEmptyBlocklist (decode "sexy") `shouldBe` Right [ 200044 ]
-      withNonEmptyBlocklist (encode [ 200044 ]) `shouldBe` Right "sexy"
+      -- Make sure we don't use the default blocklist
+      withNonEmptyBlocklist (decode "aho1e") `shouldBe` Right [ 4572721 ]
+      withNonEmptyBlocklist (encode [ 4572721 ]) `shouldBe` Right "aho1e"
 
-      withNonEmptyBlocklist (decode "AvTg") `shouldBe` Right [ 100000 ]
-      withNonEmptyBlocklist (encode [ 100000 ]) `shouldBe` Right "7T1X8k"
-      withNonEmptyBlocklist (decode "7T1X8k") `shouldBe` Right [ 100000 ]
+      -- Make sure we are using the passed blocklist
+      withNonEmptyBlocklist (decode "ArUO") `shouldBe` Right [ 100000 ]
+      withNonEmptyBlocklist (encode [ 100000 ]) `shouldBe` Right "QyG4"
+      withNonEmptyBlocklist (decode "QyG4") `shouldBe` Right [ 100000 ]
 
     it "blocklist" $ do
       let bls =
-            [ "8QRLaD"     -- Normal result of first encoding -- Let's block that word on purpose
-            , "7T1cd0dL"   -- Result of second encoding
-            , "UeIe"       -- Result of third encoding is `RA8UeIe7` - Let's block a substring
-            , "imhw"       -- Result of 4th encoding is `WM3Limhw` - Let's block the postfix
-            , "LfUQ"       -- Result of 4th encoding is `LfUQh4HN` - Let's block the prefix
+            [ "JSwXFaosAN"   -- Normal result of 1st encoding. Let's block that word on purpose
+            , "OCjV9JK64o"   -- Result of 2nd encoding
+            , "rBHf"         -- Result of 3rd encoding is `4rBHfOiqd3`. Let's block a substring
+            , "79SM"         -- Result of 4th encoding is `dyhgw479SM`. Let's block the postfix
+            , "7tE6"         -- Result of 4th encoding is `7tE6jdAHLe`. Let's block the prefix
             ]
-      withCustomBlocklist bls (encode [1, 2, 3]) `shouldBe` Right "TM0x1Mxz"
-      withCustomBlocklist bls (decode "TM0x1Mxz") `shouldBe` Right [1, 2, 3]
+
+      withCustomBlocklist bls (encode [1000000, 2000000]) `shouldBe` Right "1aYeB7bRUt"
+      withCustomBlocklist bls (decode "1aYeB7bRUt") `shouldBe` Right [1000000, 2000000]
 
     it "decoding blocklist words should still work" $ do
       let bls =
-            [ "8QRLaD"
-            , "7T1cd0dL"
-            , "RA8UeIe7"
-            , "WM3Limhw"
-            , "LfUQh4HN"
+            [ "86Rf07"
+            , "se8ojk"
+            , "ARsz1p"
+            , "Q8AI49"
+            , "5sQRZO"
             ]
-      withCustomBlocklist bls (decode "8QRLaD") `shouldBe` Right [1, 2, 3]
-      withCustomBlocklist bls (decode "7T1cd0dL") `shouldBe` Right [1, 2, 3]
-      withCustomBlocklist bls (decode "RA8UeIe7") `shouldBe` Right [1, 2, 3]
-      withCustomBlocklist bls (decode "WM3Limhw") `shouldBe` Right [1, 2, 3]
-      withCustomBlocklist bls (decode "LfUQh4HN") `shouldBe` Right [1, 2, 3]
+
+      withCustomBlocklist bls (decode "86Rf07") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "se8ojk") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "ARsz1p") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "Q8AI49") `shouldBe` Right [ 1, 2, 3 ]
+      withCustomBlocklist bls (decode "5sQRZO") `shouldBe` Right [ 1, 2, 3 ]
 
     it "match against a short blocklist word" $
-      withCustomBlocklist [ "pPQ" ] ((encode >=> decode) [1000]) `shouldBe` Right [1000]
+      withCustomBlocklist [ "pnd" ] ((encode >=> decode) [1000]) `shouldBe` Right [1000]
 
     it "blocklist filtering in constructor" $ do
-      let options = defaultSqidsOptions { alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", blocklist = ["sqnmpn"] } 
+      let options = defaultSqidsOptions { alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ", blocklist = ["sxnzkl"] }
           testFn = do
             p <- encode [1, 2, 3]
             q <- decode p
             pure (p, q)
-      runSqids options testFn `shouldBe` Right ("ULPBZGBM", [1, 2, 3])
+      runSqids options testFn `shouldBe` Right ("IBSHOZ", [1, 2, 3])
+
+    it "max encoding attempts" $ do
+      let _alphabet  = "abc"
+          _blocklist = [ "cab", "abc", "bca" ]
+          _minLength = 3
+          options = defaultSqidsOptions
+            { alphabet  = _alphabet
+            , blocklist = _blocklist
+            , minLength = _minLength
+            }
+
+      case runSqids defaultSqidsOptions (sqidsContext options) of
+        Left _ ->
+            error "Unexpected failure"
+        Right (config :: SqidsContext Int) -> do
+            Text.length (sqidsAlphabet config) `shouldBe` _minLength
+            length (sqidsBlocklist config) `shouldBe` _minLength
+
+            runSqids options ((encode >=> decode) [0]) `shouldBe` Left SqidsMaxEncodingAttempts

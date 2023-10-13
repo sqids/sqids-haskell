@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module Web.Sqids
+module Web.Sqids.Integer
   ( sqidsVersion
   , defaultSqidsOptions
   , SqidsOptions(..)
@@ -37,8 +37,8 @@ import Web.Sqids.Internal
 
 import Data.Text (Text)
 
-encode :: (MonadSqids Int m) => [Int] -> m Text
+encode :: (MonadSqids Integer m) => [Integer] -> m Text
 encode = sqidsEncode
 
-decode :: (MonadSqids Int m) => Text -> m [Int]
+decode :: (MonadSqids Integer m) => Text -> m [Integer]
 decode = sqidsDecode

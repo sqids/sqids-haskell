@@ -1,7 +1,10 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Web.Sqids.Internal
   ( sqidsVersion
@@ -12,9 +15,9 @@ module Web.Sqids.Internal
   , defaultSqidsOptions
   , SqidsStack
   , MonadSqids (..)
-  , sqidsOptions
+  , sqidsContext
   , SqidsT (..)
-  , Sqids (..)
+  , Sqids
   , runSqidsT
   , sqidsT
   , runSqids
@@ -71,14 +74,14 @@ defaultSqidsOptions = SqidsOptions
   , blocklist = defaultBlocklist
   }
 
-data SqidsContext = SqidsContext
+data SqidsContext s = SqidsContext
   { sqidsAlphabet  :: !Text
   , sqidsMinLength :: !Int
   , sqidsBlocklist :: ![Text]
   } deriving (Show, Eq, Ord)
 
 {-# INLINE emptySqidsContext #-}
-emptySqidsContext :: SqidsContext
+emptySqidsContext :: SqidsContext s
 emptySqidsContext = SqidsContext Text.empty 0 []
 
 data SqidsError
@@ -98,24 +101,22 @@ data SqidsError
   -- ^ The given `minLength` value is not within the valid range.
   deriving (Show, Read, Eq, Ord)
 
-type SqidsStack m = ReaderT SqidsContext (ExceptT SqidsError m)
+type SqidsStack s m = ReaderT (SqidsContext s) (ExceptT SqidsError m)
 
-class (Monad m) => MonadSqids m where
+class (Monad m) => MonadSqids s m | m -> s where
   -- | Encode a list of integers into an ID
-  sqidsEncode :: (Integral a)
-         => [a]     -- ^ A list of non-negative numbers to encode
-         -> m Text  -- ^ Returns the generated ID
+  sqidsEncode :: [s]     -- ^ A list of non-negative numbers to encode
+              -> m Text  -- ^ Returns the generated ID
   -- | Decode an ID back into a list of integers
-  sqidsDecode :: (Integral a)
-         => Text    -- ^ The encoded ID
-         -> m [a]   -- ^ Returns a list of numbers
+  sqidsDecode :: Text    -- ^ The encoded ID
+              -> m [s]   -- ^ Returns a list of numbers
 
 -- | Sqids constructor
-sqidsOptions
-  :: (MonadSqids m, MonadError SqidsError m)
+sqidsContext
+  :: (MonadSqids s m, MonadError SqidsError m)
   => SqidsOptions
-  -> m SqidsContext
-sqidsOptions SqidsOptions{..} = do
+  -> m (SqidsContext s)
+sqidsContext SqidsOptions{..} = do
 
   let alphabetLetterCount = letterCount alphabet
 
@@ -142,20 +143,20 @@ sqidsOptions SqidsOptions{..} = do
     }
 
 -- | Sqids monad transformer
-newtype SqidsT m a = SqidsT {unwrapSqidsT :: SqidsStack m a}
+newtype SqidsT s m a = SqidsT { unwrapSqidsT :: SqidsStack s m a }
   deriving
     ( Functor
     , Applicative
     , Monad
-    , MonadReader SqidsContext
+    , MonadReader (SqidsContext s)
     , MonadError SqidsError
     , MonadIO
     )
 
-instance MonadTrans SqidsT where
+instance MonadTrans (SqidsT s) where
   lift = SqidsT . lift . lift
 
-instance (Monad m) => MonadSqids (SqidsT m) where
+instance (Integral s, Monad m) => MonadSqids s (SqidsT s m) where
   sqidsEncode numbers
     | null numbers =
         -- If no numbers passed, return an empty string
@@ -170,62 +171,54 @@ instance (Monad m) => MonadSqids (SqidsT m) where
     asks (decodeWithAlphabet . sqidsAlphabet) <*> pure sqid
 
 -- | Sqids monad
-newtype Sqids a = Sqids {unwrapSqids :: SqidsT Identity a}
-  deriving
-    ( Functor
-    , Applicative
-    , Monad
-    , MonadReader SqidsContext
-    , MonadError SqidsError
-    , MonadSqids
-    )
+type Sqids s = SqidsT s Identity
 
 -- | Evaluate a `SqidsT` computation with the given options.
-runSqidsT :: (Monad m) => SqidsOptions -> SqidsT m a -> m (Either SqidsError a)
+runSqidsT :: (Integral s, Monad m) => SqidsOptions -> SqidsT s m a -> m (Either SqidsError a)
 runSqidsT options value =
   runExceptT (runReaderT (unwrapSqidsT withOptions) emptySqidsContext)
   where
-    withOptions = sqidsOptions options >>= (`local` value) . const
+    withOptions = sqidsContext options >>= (`local` value) . const
 
 -- | Evaluate a `SqidsT` computation with the default options. This is a short
 --   form for `runSqidsT defaultSqidsOptions`.
-sqidsT :: (Monad m) => SqidsT m a -> m (Either SqidsError a)
+sqidsT :: (Integral s, Monad m) => SqidsT s m a -> m (Either SqidsError a)
 sqidsT = runSqidsT defaultSqidsOptions
 
 -- | Evaluate a `Sqids` computation with the given options.
-runSqids :: SqidsOptions -> Sqids a -> Either SqidsError a
-runSqids options = runIdentity . runSqidsT options . unwrapSqids
+runSqids :: (Integral s) => SqidsOptions -> Sqids s a -> Either SqidsError a
+runSqids options = runIdentity . runSqidsT options -- . unwrapSqidsT
 
 -- | Evaluate a `Sqids` computation with the default options. This is a short
 --   form for `runSqids defaultSqidsOptions`.
-sqids :: Sqids a -> Either SqidsError a
+sqids :: (Integral s) => Sqids s a -> Either SqidsError a
 sqids = runSqids defaultSqidsOptions
 
-instance (MonadSqids m) => MonadSqids (StateT s m) where
+instance (MonadSqids s m) => MonadSqids s (StateT s m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
-instance (MonadSqids m) => MonadSqids (ExceptT e m) where
+instance (MonadSqids s m) => MonadSqids s (ExceptT e m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
-instance (MonadSqids m) => MonadSqids (ReaderT r m) where
+instance (MonadSqids s m) => MonadSqids s (ReaderT r m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
-instance (MonadSqids m, Monoid w) => MonadSqids (WriterT w m) where
+instance (MonadSqids s m, Monoid w) => MonadSqids s (WriterT w m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
-instance (MonadSqids m) => MonadSqids (MaybeT m) where
+instance (MonadSqids s m) => MonadSqids s (MaybeT m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
-instance (MonadSqids m) => MonadSqids (ContT r m) where
+instance (MonadSqids s m) => MonadSqids s (ContT r m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
-instance (MonadSqids m) => MonadSqids (SelectT r m) where
+instance (MonadSqids s m) => MonadSqids s (SelectT r m) where
   sqidsEncode = lift . sqidsEncode
   sqidsDecode = lift . sqidsDecode
 
@@ -328,11 +321,11 @@ rearrangeAlphabet increment alph numbers =
        in fromIntegral (ord currentChar) + i + a
 
 encodeNumbers ::
-  ( Integral a
-  , MonadSqids m
+  ( Integral s
+  , MonadSqids s m
   , MonadError SqidsError m
-  , MonadReader SqidsContext m
-  ) => [a] -> Int -> m Text
+  , MonadReader (SqidsContext s) m
+  ) => [s] -> Int -> m Text
 encodeNumbers numbers increment = do
   alph <- asks sqidsAlphabet
   when (increment > Text.length alph) $

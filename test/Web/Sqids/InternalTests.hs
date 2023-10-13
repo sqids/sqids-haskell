@@ -6,7 +6,7 @@ module Web.Sqids.InternalTests
 
 import Data.Text (Text, unpack)
 import Test.Hspec hiding (it)
-import Web.Sqids (sqidsOptions, sqids, encode, SqidsOptions(..), SqidsError(..))
+import Web.Sqids (sqidsContext, sqids, encode, SqidsOptions(..), SqidsError(..))
 import Web.Sqids.Internal (SqidsContext(..), filteredBlocklist, isBlockedId, toId, toNumber, shuffle)
 import Web.Sqids.Utils.Internal (swapChars)
 
@@ -34,18 +34,21 @@ testSwapChars = do
     _ ->
       error "testSwapChars: bad input"
 
+createContext :: SqidsOptions -> Either SqidsError (SqidsContext Int)
+createContext options = sqids (sqidsContext options)
+
 testSqidsOptions :: SpecWith ()
 testSqidsOptions =
 
-  describe "sqidsOptions" $ do
+  describe "sqidsContext" $ do
     it "too short alphabet" $
-      sqids (sqidsOptions optionsWithShortAlphabet) `shouldBe` Left SqidsAlphabetTooShort
+      createContext optionsWithShortAlphabet `shouldBe` Left SqidsAlphabetTooShort
     it "invalid alphabet" $
-      sqids (sqidsOptions optionsWithInvalidAlphabet) `shouldBe` Left SqidsAlphabetRepeatedCharacters
+      createContext optionsWithInvalidAlphabet `shouldBe` Left SqidsAlphabetRepeatedCharacters
     it "invalid min length" $
-      sqids (sqidsOptions optionsWithInvalidMinLength) `shouldBe` Left SqidsInvalidMinLength
+      createContext optionsWithInvalidMinLength `shouldBe` Left SqidsInvalidMinLength
     it "valid options" $
-      sqids (sqidsOptions optionsValid) `shouldBe`
+      createContext optionsValid `shouldBe`
         Right (SqidsContext (shuffle (alphabet optionsValid)) (minLength optionsValid) (blocklist optionsValid))
   where
     optionsWithShortAlphabet = SqidsOptions

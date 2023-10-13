@@ -5,9 +5,13 @@ import Control.Monad (forM_)
 import Data.Function ((&))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe, shouldSatisfy)
-import Web.Sqids (SqidsOptions(..), SqidsError(..), defaultSqidsOptions, sqidsOptions, runSqids, sqids, decode, encode)
+import Web.Sqids (SqidsOptions(..), SqidsError(..), defaultSqidsOptions, sqidsContext, runSqids, sqids, decode, encode)
+import Web.Sqids.Internal (SqidsContext)
 
 import qualified Data.Text as Text
+
+createContext :: SqidsOptions -> Either SqidsError (SqidsContext Int)
+createContext options = sqids (sqidsContext options)
 
 testEncodeDecodeAll :: [(Int, Text)] -> IO ()
 testEncodeDecodeAll ss =
@@ -66,5 +70,5 @@ testMinLength = do
             sqids (decode sqid) `shouldBe` Right numbers
 
     it "out-of-range invalid min length" $ do
-      sqids (sqidsOptions defaultSqidsOptions{ minLength = -1 }) `shouldBe` Left SqidsInvalidMinLength
-      sqids (sqidsOptions defaultSqidsOptions{ minLength = 256 }) `shouldBe` Left SqidsInvalidMinLength
+      createContext (defaultSqidsOptions{ minLength = -1 }) `shouldBe` Left SqidsInvalidMinLength
+      createContext (defaultSqidsOptions{ minLength = 256 }) `shouldBe` Left SqidsInvalidMinLength

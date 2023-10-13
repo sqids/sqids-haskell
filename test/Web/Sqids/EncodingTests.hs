@@ -4,7 +4,8 @@ module Web.Sqids.EncodingTests (testEncoding) where
 import Control.Monad (forM_, (<=<))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids (SqidsError(..), sqids, decode, encode, decode_, encode_)
+import Web.Sqids (SqidsError(..), sqids, decode, encode)
+import qualified Web.Sqids.Integer as BigSqids
 
 testEncodeDecodeAll :: [(Text, [Int])] -> IO ()
 testEncodeDecodeAll ss =
@@ -100,4 +101,4 @@ testEncoding = do
     it "big int" $ do
       let numbers = [ 11119223372036854775807 ]
 
-      sqids ((decode_ <=< encode_) numbers) `shouldBe` Right numbers
+      sqids ((BigSqids.decode <=< BigSqids.encode) numbers) `shouldBe` Right numbers

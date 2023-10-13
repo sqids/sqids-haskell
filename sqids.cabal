@@ -30,6 +30,7 @@ library
   exposed-modules:
       Web.Sqids
       Web.Sqids.Blocklist
+      Web.Sqids.Integer
       Web.Sqids.Internal
       Web.Sqids.Utils.Internal
   other-modules:

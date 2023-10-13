@@ -1,20 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Web.Sqids.BlocklistTests (testBlocklist) where
 
 import Control.Monad ((>=>))
 import Data.Text (Text)
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids (SqidsOptions(..), SqidsError(..), Sqids, defaultSqidsOptions, sqidsOptions, runSqids, sqids, decode, encode)
-import Web.Sqids.Internal (sqidsAlphabet, sqidsBlocklist)
+import Web.Sqids (SqidsOptions(..), SqidsError(..), Sqids, defaultSqidsOptions, sqidsContext, runSqids, sqids, decode, encode)
+import Web.Sqids.Internal (sqidsAlphabet, sqidsBlocklist, SqidsContext)
 import qualified Data.Text as Text
 
-withEmptyBlocklist :: Sqids a -> Either SqidsError a
+withEmptyBlocklist :: Sqids Int a -> Either SqidsError a
 withEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = [] }
 
-withNonEmptyBlocklist :: Sqids a -> Either SqidsError a
+withNonEmptyBlocklist :: Sqids Int a -> Either SqidsError a
 withNonEmptyBlocklist = runSqids defaultSqidsOptions{ blocklist = ["ArUO"] }
 
-withCustomBlocklist :: [Text] -> Sqids a -> Either SqidsError a
+withCustomBlocklist :: [Text] -> Sqids Int a -> Either SqidsError a
 withCustomBlocklist bls = runSqids defaultSqidsOptions { blocklist = bls }
 
 testBlocklist :: SpecWith ()
@@ -87,10 +88,10 @@ testBlocklist = do
             , minLength = _minLength
             }
 
-      case runSqids defaultSqidsOptions (sqidsOptions options) of
+      case runSqids defaultSqidsOptions (sqidsContext options) of
         Left _ ->
             error "Unexpected failure"
-        Right config -> do
+        Right (config :: SqidsContext Int) -> do
             Text.length (sqidsAlphabet config) `shouldBe` _minLength
             length (sqidsBlocklist config) `shouldBe` _minLength
 

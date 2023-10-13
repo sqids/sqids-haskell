@@ -3,7 +3,11 @@ module Web.Sqids.AlphabetTests (testAlphabet) where
 
 import Control.Monad ((<=<))
 import Test.Hspec (SpecWith, describe, it, shouldBe)
-import Web.Sqids (SqidsOptions(..), SqidsError(..), defaultSqidsOptions, sqidsOptions, runSqids, sqids, decode, encode)
+import Web.Sqids (SqidsOptions(..), SqidsError(..), defaultSqidsOptions, sqidsContext, runSqids, sqids, decode, encode)
+import Web.Sqids.Internal (SqidsContext(..))
+
+createContext :: SqidsOptions -> Either SqidsError (SqidsContext Int)
+createContext options = sqids (sqidsContext options)
 
 testAlphabet :: SpecWith ()
 testAlphabet = do
@@ -30,13 +34,13 @@ testAlphabet = do
       runSqids options ((decode <=< encode) numbers) `shouldBe` Right numbers
 
     it "multibyte characters" $ do
-      sqids (sqidsOptions (defaultSqidsOptions{ alphabet = "ë1092" }))
+      createContext (defaultSqidsOptions{ alphabet = "ë1092" })
         `shouldBe` Left SqidsAlphabetContainsMultibyteCharacters
 
     it "repeating characters" $ do
-      sqids (sqidsOptions (defaultSqidsOptions{ alphabet = "aabcdefg" }))
+      createContext (defaultSqidsOptions{ alphabet = "aabcdefg" })
         `shouldBe` Left SqidsAlphabetRepeatedCharacters
 
     it "too short of an alphabet" $ do
-      sqids (sqidsOptions (defaultSqidsOptions{ alphabet = "ab" }))
+      createContext (defaultSqidsOptions{ alphabet = "ab" })
         `shouldBe` Left SqidsAlphabetTooShort

@@ -122,7 +122,7 @@ main =
 > The output of this program is:
 >
 > ```
-> "86Rf07xd4zBmiJXQG6otHEbe"
+> "86Rf07"
 > ```
 
 #### Decoding
@@ -183,7 +183,7 @@ main =
 > The output of this program is:
 >
 > ```
-> "75JILToVsGerOADWmT1cd0dL"
+> "86Rf07xd4zBmiJXQG6otHEbe"
 > ```
 
 To set a custom alphabet:

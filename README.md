@@ -45,7 +45,7 @@
 
 ### Installation
 
-Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). To install this package, run:
+Sqids is available on Hackage ([hackage.haskell.org/package/sqids](https://hackage.haskell.org/package/sqids)). To install it, run:
 
 ```
 cabal install sqids

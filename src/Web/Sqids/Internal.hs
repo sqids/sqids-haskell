@@ -119,7 +119,7 @@ sqidsOptions SqidsOptions{..} = do
 
   let alphabetLetterCount = letterCount alphabet
 
-  -- Check the alphabet doesn't contain multibyte characters
+  -- Check that the alphabet doesn't contain multibyte characters
   when (containsMultibyteChars alphabet) $
     throwError SqidsAlphabetContainsMultibyteCharacters
 
@@ -169,6 +169,7 @@ instance (Monad m) => MonadSqids (SqidsT m) where
   sqidsDecode sqid =
     asks (decodeWithAlphabet . sqidsAlphabet) <*> pure sqid
 
+-- | Sqids monad
 newtype Sqids a = Sqids {unwrapSqids :: SqidsT Identity a}
   deriving
     ( Functor

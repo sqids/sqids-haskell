@@ -65,7 +65,7 @@ The library exposes two versions of the API;
 - `Web.Sqids.Integer` uses `Integer`s, which support arbitrarily large integers.
 
 If you need to work with (i.e., encode and decode) large numbers, it is
-recommened to choose the latter option, in which case you would import the
+recommended to choose the latter option, in which case you would import the
 library as:
 
 ```

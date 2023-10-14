@@ -332,7 +332,7 @@ main = fromRight () <$> runRepl
 
 > Program example output:
 >
-> [![Example](readme/example.gif)](https://raw.githubusercontent.com/sqids/sqids-haskell/main/readme/example.gif)
+> ![Example](https://raw.githubusercontent.com/sqids/sqids-haskell/main/readme/example.gif)
 
 ## Options
 

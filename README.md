@@ -64,7 +64,7 @@ The library exposes two versions of the API;
 - `Web.Sqids` relies on Haskell's `Int` data type, whereas
 - `Web.Sqids.Integer` uses `Integer`s, which support arbitrarily large integers.
 
-If you need to work with (i.e., encode and decode) large numbers, it is
+If you need to work with (i.e. encode and decode to) large numbers, it is
 recommended to choose the latter option, in which case you would import the
 library as:
 

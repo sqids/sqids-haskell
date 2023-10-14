@@ -332,7 +332,7 @@ main = fromRight () <$> runRepl
 
 > Program example output:
 >
-> ![Example](main/readme/example.gif)
+> ![Example](/readme/example.gif)
 
 ## Options
 

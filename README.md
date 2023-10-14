@@ -291,15 +291,18 @@ The following is an example of how to handle errors with the help of
 `MonadError`s exception-handling mechanism:
 
 ```haskell
-{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Control.Monad (when)
 import Control.Monad.Except (catchError)
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Either (fromRight)
 import Data.Text (unpack)
 import Text.Read (readMaybe)
 import Web.Sqids
+
+putStrLn_ :: String -> SqidsT Int IO ()
+putStrLn_ = liftIO . putStrLn
 
 repl :: SqidsT Int IO ()
 repl = do
@@ -307,20 +310,18 @@ repl = do
     putStrLn "Enter a comma-separated list of non-negative integers, or \"exit\"."
     putStr "> "
     getLine
-  if input == "exit"
-    then pure ()
-    else do
-      case readMaybe ("[" <> input <> "]") of
-        Nothing ->
-          liftIO $ putStrLn "Invalid input: Please try again."
-        Just numbers ->
-          catchError (encode numbers >>= liftIO . putStrLn . unpack) $ \err ->
-            liftIO $ case err of
-              SqidsNegativeNumberInInput ->
-                putStrLn "Only non-negative integers are accepted as input."
-              _ ->
-                putStrLn "Unexpected error"
-      repl
+  when (input /= "exit") $ do
+    case readMaybe ("[" <> input <> "]") of
+      Nothing ->
+        putStrLn_ "Invalid input: Please try again."
+      Just numbers ->
+        catchError (encode numbers >>= putStrLn_ . unpack) $ \err ->
+          case err of
+            SqidsNegativeNumberInInput ->
+              putStrLn_ "Only non-negative integers are accepted as input."
+            _ ->
+              putStrLn_ "Unexpected error"
+    repl
 
 runRepl :: IO (Either SqidsError ())
 runRepl = runSqidsT defaultSqidsOptions repl

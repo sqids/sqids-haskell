@@ -101,9 +101,10 @@ sqids :: Sqids s a -> Either SqidsError a
 This gives you a value of type `Either SqidsError a`, where `a` is the ID in the
 case of `encode`. If encoding fails for some reason, then the `Left` constructor
 [contains the error](#error-handling). For some use cases, directly calling
-`sqids` or `runSqids` in this way is sufficient. If you do this in multiple
-locations in your code, however, especially when IO or other effects are
-involved, the [`SqidsT` monad transformer](#monad-transformer) is a better choice.
+`sqids` or `runSqids` in this way is sufficient. Doing so in multiple locations
+in your code, however, doesn't scale very well, especially when IO or other
+effects are involved. In this case, the [`SqidsT` monad transformer](#monad-transformer)
+is a better choice.
 
 #### Encoding
 

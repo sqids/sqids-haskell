@@ -1,11 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.35.2.
 --
 -- see: https://github.com/sol/hpack
 
 name:           sqids
-version:        0.2.0.0
+version:        0.2.1.0
 synopsis:       A small library that lets you generate YouTube-looking IDs from numbers.
 description:    Sqids (pronounced "squids") is an open-source library that lets you generate YouTube-looking IDs from numbers. These IDs are short, can be generated from a custom alphabet and are guaranteed to be collision-free. For more info, see <https://github.com/sqids/sqids-haskell#readme> and the official Sqids home page <https://sqids.org>.
 category:       Web
@@ -40,7 +40,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
-    , bytestring >=0.11.4.0 && <0.12.0.0
+    , bytestring >=0.11.4.0 && <0.12.1.0
     , containers >=0.6.7 && <0.7.0
     , mtl >=2.2.2 && <2.4.0
     , text >=2.0.2 && <2.1.0
@@ -62,7 +62,7 @@ test-suite sqids-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
-    , bytestring >=0.11.4.0 && <0.12.0.0
+    , bytestring >=0.11.4.0 && <0.12.1.0
     , containers >=0.6.7 && <0.7.0
     , hspec >=2.10.10 && <2.12
     , mtl >=2.2.2 && <2.4.0

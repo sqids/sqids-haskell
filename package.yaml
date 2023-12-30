@@ -1,5 +1,5 @@
 name:                sqids
-version:             0.2.0.0
+version:             0.2.1.0
 category:            Web
 synopsis:            A small library that lets you generate YouTube-looking IDs from numbers.
 description:         Sqids (pronounced "squids") is an open-source library that lets you generate YouTube-looking IDs from numbers. These IDs are short, can be generated from a custom alphabet and are guaranteed to be collision-free. For more info, see <https://github.com/sqids/sqids-haskell#readme> and the official Sqids home page <https://sqids.org>.
@@ -21,7 +21,7 @@ dependencies:
 - containers >= 0.6.7 && < 0.7.0
 - mtl >= 2.2.2 && < 2.4.0
 - transformers >= 0.5.6.2 && < 0.7.0.0
-- bytestring >= 0.11.4.0 && < 0.12.0.0
+- bytestring >= 0.11.4.0 && < 0.12.1.0
 
 ghc-options:
 - -Wall

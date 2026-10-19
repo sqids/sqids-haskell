@@ -85,8 +85,13 @@ Use `encode` to translate a list of non-negative integers into an ID, and
 `decode` to retrieve back the list of numbers encoded by an ID.
 
 ```haskell
-encode :: (Integral a) => [a] -> Sqids Text
-decode :: (Integral a) => Text -> Sqids [a]
+-- Web.Sqids
+encode :: [Int] -> Sqids Int Text
+decode :: Text -> Sqids Int [Int]
+
+-- Web.Sqids.Integer
+encode :: [Integer] -> Sqids Integer Text
+decode :: Text -> Sqids Integer [Integer]
 ```
 
 These functions return (monadic) values of type `Sqids Int a` or `Sqids Integer a`.

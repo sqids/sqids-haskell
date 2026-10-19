@@ -4,6 +4,7 @@ import Web.Sqids.BlocklistTests (testBlocklist)
 import Web.Sqids.EncodingTests (testEncoding)
 import Web.Sqids.InternalTests (testInternals)
 import Web.Sqids.MinLengthTests (testMinLength)
+import Web.Sqids.RegressionTests (testRegressions)
 
 main :: IO ()
 main =
@@ -11,6 +12,7 @@ main =
 
     describe "\nTest internals\n" $ do
       testInternals
+      testRegressions
     --
     -- Official tests from sqids-spec
     --

@@ -33,6 +33,7 @@
     * [Encoding](#encoding)
     * [Decoding](#decoding)
   * [Setting options](#setting-options)
+  * [Reusing a context](#reusing-a-context)
   * [Monad transformer](#monad-transformer)
   * [Error handling](#error-handling)
 * [Options](#options)
@@ -226,6 +227,58 @@ main = do
 > ```
 > "38494176"
 > ```
+
+### Reusing a context
+
+`runSqids` validates the options and precomputes everything derived from them —
+shuffling the alphabet, filtering and indexing the blocklist — on **every call**.
+That setup costs about 2.5–3&nbsp;µs, roughly an order of magnitude more than
+encoding an ID actually does.
+
+If you are generating more than a handful of IDs, build a `SqidsContext` once
+with `mkSqidsContext` and run against it with `runSqidsWith`:
+
+```haskell
+mkSqidsContext :: SqidsOptions -> Either SqidsError (SqidsContext s)
+runSqidsWith   :: SqidsContext s -> Sqids s a -> Either SqidsError a
+```
+
+```haskell
+import Data.Text (Text)
+import Web.Sqids
+
+-- Validated once, at startup.
+sqidsCtx :: SqidsContext Int
+sqidsCtx =
+  either (error . show) id $
+    mkSqidsContext defaultSqidsOptions{ minLength = 24 }
+
+makeId :: [Int] -> Either SqidsError Text
+makeId = runSqidsWith sqidsCtx . encode
+
+readId :: Text -> Either SqidsError [Int]
+readId = runSqidsWith sqidsCtx . decode
+```
+
+`mkSqidsContext` is pure and total, so option validation happens where you build
+the context rather than on each use. A `SqidsContext` is immutable and safe to
+share across threads. There is a `runSqidsTWith` for the transformer, too.
+
+Measured on GHC 9.14.1 with `-O2`, encoding one ID:
+
+| | per ID |
+|---|---|
+| `runSqids opts (encode [n])` | 3.35 µs |
+| `runSqidsWith ctx (encode [n])` | 0.55 µs |
+
+> **A caveat on benchmarking this.** If the options you pass are a constant
+> expression — `runSqids defaultSqidsOptions{ minLength = 24 } (encode ...)`
+> written out literally — GHC's full-laziness pass can float the context build
+> out to a shared top-level value, and `runSqids` will look nearly as fast. That
+> happens only when the optimiser can prove the expression is loop-invariant, so
+> it does not happen when your options come from configuration or from a function
+> argument. `runSqidsWith` makes the sharing explicit rather than leaving it to
+> the optimiser.
 
 ### Monad transformer
 

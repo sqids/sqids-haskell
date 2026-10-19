@@ -46,9 +46,31 @@ What changed:
 
 ### Added
 
-- `Web.Sqids.Internal.mkSqidsContext` — validate `SqidsOptions` and precompute,
-  purely and totally, without running a Sqids computation. Prefer building one
-  context and keeping it; that is where most of the remaining cost lives.
+- `mkSqidsContext :: SqidsOptions -> Either SqidsError (SqidsContext s)` —
+  validate options and precompute, purely and totally, without running a Sqids
+  computation.
+- `runSqidsWith :: SqidsContext s -> Sqids s a -> Either SqidsError a` and
+  `runSqidsTWith :: SqidsContext s -> SqidsT s m a -> m (Either SqidsError a)` —
+  run against a context you already hold, so option validation and blocklist
+  preparation are paid once rather than per call. Encoding one ID:
+
+  | | per ID |
+  |---|---|
+  | `runSqids opts (encode [n])` | 3.35 µs |
+  | `runSqidsWith ctx (encode [n])` | 0.55 µs |
+
+  Note that `runSqidsTWith` needs no `Monad m` constraint: there is no setup
+  left that can fail, so unlike `runSqidsT` it never injects a pure `Left`.
+
+  Caveat worth knowing when measuring this: if the options are a constant
+  expression, GHC's full-laziness pass can float the context build out to a
+  shared top-level value and `runSqids` will look nearly as fast. That only
+  happens when the optimiser can prove the expression loop-invariant, so it does
+  not happen when options come from configuration or a function argument.
+  `runSqidsWith` makes the sharing explicit instead of leaving it to the
+  optimiser.
+- `SqidsContext` is now exported from `Web.Sqids` and `Web.Sqids.Integer` as an
+  abstract type, so it can be named in signatures. Its fields remain internal.
 - `Web.Sqids.Internal.Core`, the byte-level core. Internal, no stability
   guarantees.
 

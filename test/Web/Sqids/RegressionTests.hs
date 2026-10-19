@@ -9,7 +9,18 @@ module Web.Sqids.RegressionTests (testRegressions) where
 import Control.Monad (forM_)
 import Data.Text (Text)
 import Test.Hspec (HasCallStack, SpecWith, describe, expectationFailure, it, shouldBe)
-import Web.Sqids (SqidsError, SqidsOptions (..), decode, defaultSqidsOptions, encode, runSqids, sqids)
+import Web.Sqids
+  ( SqidsContext
+  , SqidsError (..)
+  , SqidsOptions (..)
+  , decode
+  , defaultSqidsOptions
+  , encode
+  , mkSqidsContext
+  , runSqids
+  , runSqidsWith
+  , sqids
+  )
 
 import qualified Data.Text as Text
 
@@ -81,3 +92,41 @@ testRegressions =
       -- never match a longer ID.
       let opts = defaultSqidsOptions { blocklist = ["pnd"] }
       runSqids opts (encode [1000 :: Int] >>= decode) `shouldBe` Right [1000 :: Int]
+
+    it "a reused context gives the same answers as rebuilding one" $
+      forM_ optionSets $ \opts -> do
+        let ctx = either (error . show) id (mkSqidsContext opts) :: SqidsContext Int
+        forM_ inputs $ \ns -> do
+          runSqidsWith ctx (encode ns) `shouldBe` runSqids opts (encode ns)
+          runSqidsWith ctx (encode ns >>= decode) `shouldBe` Right ns
+
+    it "a context stays correct across many uses" $ do
+      -- Nothing in the context may be mutated by encoding or decoding: the
+      -- working alphabet is a buffer allocated per call, not shared state.
+      let ctx = either (error . show) id (mkSqidsContext defaultSqidsOptions) :: SqidsContext Int
+          once = runSqidsWith ctx (encode [1, 2, 3])
+      forM_ [1 .. 200 :: Int] $ \i -> do
+        runSqidsWith ctx (encode [i]) `shouldBe` runSqids defaultSqidsOptions (encode [i])
+        runSqidsWith ctx (encode [1, 2, 3]) `shouldBe` once
+
+    it "mkSqidsContext rejects what sqidsContext rejects" $
+      forM_ badOptions $ \(opts, err) ->
+        (mkSqidsContext opts :: Either SqidsError (SqidsContext Int)) `shouldBe` Left err
+  where
+    optionSets =
+      [ defaultSqidsOptions
+      , defaultSqidsOptions { minLength = 24 }
+      , defaultSqidsOptions { minLength = 255 }
+      , defaultSqidsOptions { blocklist = [] }
+      , defaultSqidsOptions { alphabet = "0123456789abcdef" }
+      , defaultSqidsOptions { alphabet = "abc", blocklist = [] }
+      ]
+    inputs =
+      [[0], [1], [1, 2, 3], [0, 0, 0], [100000], [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]] :: [[Int]]
+    badOptions =
+      [ (defaultSqidsOptions { alphabet = "ab" },  SqidsAlphabetTooShort)
+      , (defaultSqidsOptions { alphabet = "aab" }, SqidsAlphabetRepeatedCharacters)
+      , (defaultSqidsOptions { alphabet = "\235\&1092" }, SqidsAlphabetContainsMultibyteCharacters)
+      , (defaultSqidsOptions { minLength = -1 },   SqidsInvalidMinLength)
+      , (defaultSqidsOptions { minLength = 256 },  SqidsInvalidMinLength)
+      ]

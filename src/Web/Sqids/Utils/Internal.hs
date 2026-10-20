@@ -15,8 +15,6 @@ import Data.Text (Text)
 
 import qualified Data.Text as Text
 import qualified Data.Set as Set
-import qualified Data.Text.Encoding as TextEncoding
-import qualified Data.ByteString as ByteString
 
 {-# INLINE letterCount #-}
 letterCount :: Text -> Int
@@ -50,6 +48,9 @@ unsafeIndex c = fromJust . Text.findIndex (== c)
 unsafeUncons :: Text -> (Char, Text)
 unsafeUncons = fromJust . Text.uncons
 
+-- | Does this text contain any character that UTF-8 encodes to more than one
+--   byte? Equivalent to comparing the character count against the encoded byte
+--   count, but without encoding anything.
+{-# INLINE containsMultibyteChars #-}
 containsMultibyteChars :: Text -> Bool
-containsMultibyteChars input =
-  Text.length input /= ByteString.length (TextEncoding.encodeUtf8 input)
+containsMultibyteChars = Text.any (> '\DEL')

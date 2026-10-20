@@ -7,12 +7,16 @@ module Web.Sqids.Integer
   , SqidsOptions(..)
   , SqidsError(..)
   , MonadSqids
+  , SqidsContext
+  , mkSqidsContext
   , sqidsContext
   , SqidsT
   , runSqidsT
+  , runSqidsTWith
   , sqidsT
   , Sqids
   , runSqids
+  , runSqidsWith
   , sqids
   , encode
   , decode
@@ -24,12 +28,16 @@ import Web.Sqids.Internal
   , SqidsOptions(..)
   , SqidsError(..)
   , MonadSqids
+  , SqidsContext
+  , mkSqidsContext
   , sqidsContext
   , SqidsT
   , runSqidsT
+  , runSqidsTWith
   , sqidsT
   , Sqids
   , runSqids
+  , runSqidsWith
   , sqids
   , sqidsEncode
   , sqidsDecode

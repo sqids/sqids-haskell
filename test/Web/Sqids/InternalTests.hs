@@ -47,9 +47,12 @@ testSqidsOptions =
       createContext optionsWithInvalidAlphabet `shouldBe` Left SqidsAlphabetRepeatedCharacters
     it "invalid min length" $
       createContext optionsWithInvalidMinLength `shouldBe` Left SqidsInvalidMinLength
-    it "valid options" $
-      createContext optionsValid `shouldBe`
-        Right (SqidsContext (shuffle (alphabet optionsValid)) (minLength optionsValid) (blocklist optionsValid))
+    it "valid options" $ do
+      -- Checked field by field rather than against a constructed context, so
+      -- that adding derived fields to SqidsContext does not break the test.
+      fmap sqidsAlphabet  (createContext optionsValid) `shouldBe` Right (shuffle (alphabet optionsValid))
+      fmap sqidsMinLength (createContext optionsValid) `shouldBe` Right (minLength optionsValid)
+      fmap sqidsBlocklist (createContext optionsValid) `shouldBe` Right (blocklist optionsValid)
   where
     optionsWithShortAlphabet = SqidsOptions
       { alphabet = "ab"
